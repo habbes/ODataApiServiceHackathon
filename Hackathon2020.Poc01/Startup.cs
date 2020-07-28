@@ -46,8 +46,8 @@ namespace Hackathon2020.Poc01
             //services.AddDbContext<DbContext, InMemoryDbContext>(options => options.UseInMemoryDatabase(databaseName: "Hackathon2020.Poc01Db"));
             services.AddSingleton<DbContext>(sp =>
             {
-                DbContext dbContext = Activator.CreateInstance(contextType) as DbContext;
-                dbContext.Database.Initialize(true);
+                var connectionString = $"Server=(localdb)\\MSSQLLocalDB;Database={DbContextConstants.Name};Trusted_Connection=True;MultipleActiveResultSets=true";
+                DbContext dbContext = Activator.CreateInstance(contextType, new object[] { connectionString }) as DbContext;
                 dbContext.Database.CreateIfNotExists();
                 return dbContext;
             });

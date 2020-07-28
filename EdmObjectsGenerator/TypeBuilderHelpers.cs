@@ -81,6 +81,22 @@
             emitter.Emit(OpCodes.Ret);
         }
 
+        public static void CreateConnectionStringConstructor(this TypeBuilder builder, Type baseType)
+        {
+            var constructor = baseType.GetConstructor(new Type[] { typeof(string) });
+            var ctor = builder.DefineConstructor(MethodAttributes.Public, constructor.CallingConvention, new Type[] { typeof(string) });
+
+            var emitter = ctor.GetILGenerator();
+            emitter.Emit(OpCodes.Nop);
+
+            // Load `this` and call base constructor with the string arg passed to this constructor
+            emitter.Emit(OpCodes.Ldarg_0);
+            emitter.Emit(OpCodes.Ldarg_1);
+            emitter.Emit(OpCodes.Call, constructor);
+
+            emitter.Emit(OpCodes.Ret);
+        }
+
         private static CustomAttributeBuilder[] BuildCustomAttributes(IEnumerable<CustomAttributeData> customAttributes)
         {
             return customAttributes.Select(attribute => {
