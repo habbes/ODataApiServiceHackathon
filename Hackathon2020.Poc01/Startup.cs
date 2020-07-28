@@ -2,6 +2,7 @@ using EdmObjectsGenerator;
 //using Hackathon2020.Poc01.Data;
 using Hackathon2020.Poc01.Lib;
 //using Hackathon2020.Poc01.Models;
+//using Hackathon2020.Poc01.Models;
 using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing;
@@ -35,15 +36,17 @@ namespace Hackathon2020.Poc01
 
         public void ConfigureServices(IServiceCollection services)
         {
+
             DbContextGenerator generator = new DbContextGenerator();
             var contextType = generator.GenerateDbContext(@"SampleModel.xml");
-
+            
             services.AddSingleton(this.Configuration);
             //services.AddDbContext<DbContext, InMemoryDbContext>(options => options.UseInMemoryDatabase(databaseName: "Hackathon2020.Poc01Db"));
-            services.AddScoped<DbContext>(sp =>
+            services.AddSingleton<DbContext>(sp =>
             {
                 DbContext dbContext = Activator.CreateInstance(contextType) as DbContext;
-
+                dbContext.Database.Initialize(true);
+                dbContext.Database.CreateIfNotExists();
                 return dbContext;
             });
 
@@ -126,4 +129,14 @@ namespace Hackathon2020.Poc01
             return instance;
         }
     }
+
+    //public class MyContext : DbContext
+    //{
+    //    public MyContext() : base("Server=(localdb)\\MSSQLLocalDB;Database=SampleModel;Trusted_Connection=True;MultipleActiveResultSets=true")
+    //    {
+
+    //    }
+
+    //    public DbSet<Customer> Customers { get; set; }
+    //}
 }

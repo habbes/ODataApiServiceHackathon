@@ -125,7 +125,7 @@
             //generate the DbContext type
             var entitiesBuilder = moduleBuilder.DefineType(dbContextName, TypeAttributes.Class | TypeAttributes.Public, typeof(DbContext));
             var dbContextType = typeof(DbContext);
-            entitiesBuilder.CreateDefaultConstructor(dbContextType, "name=" + dbContextName);
+            entitiesBuilder.CreateDefaultConstructor(dbContextType, "Server=(localdb)\\MSSQLLocalDB;Database=SampleModel;Trusted_Connection=True;MultipleActiveResultSets=true");
 
             foreach (var entitySet in model.EntityContainer.EntitySets())
             {

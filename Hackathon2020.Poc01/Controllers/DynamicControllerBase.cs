@@ -17,11 +17,12 @@ namespace Hackathon2020.Poc01.Controllers
             _db = db;
         }
 
-        //[EnableQuery]
-        //public IQueryable<TEntity> Get()
-        //{
-        //    return _db.Set<TEntity>();
-        //}
+        [EnableQuery]
+        public IQueryable<TEntity> Get()
+        {
+            var values = _db.Set<TEntity>();
+            return values;
+        }
 
         public ActionResult Get(int key)
         {
