@@ -11,7 +11,6 @@
     using System.Text.RegularExpressions;
     using System.Threading;
     using System.Xml;
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.OData.Edm;
     using Microsoft.OData.Edm.Csdl;
     using Microsoft.OData.Edm.Validation;
@@ -121,7 +120,7 @@
 
                 }
             }
-
+            
 
             //generate the DbContext type
             var entitiesBuilder = moduleBuilder.DefineType(dbContextName, TypeAttributes.Class | TypeAttributes.Public, typeof(DbContext));
@@ -148,7 +147,7 @@
 
             // generate the IL for the OnModelCreating method
             ILGenerator ilGenerator = methodbuilder.GetILGenerator();
-            //todo: insert code
+//todo: insert code
             ilGenerator.Emit(OpCodes.Ret);
             entitiesBuilder.CreateType();
         }
@@ -168,7 +167,7 @@
                 }
 
                 var typeBuilder = moduleBuilder.DefineType(moduleName, TypeAttributes.Class | TypeAttributes.Public, previouslyBuiltType);
-                var typeBuilderInfo = new TypeBuilderInfo() { Builder = typeBuilder, IsDerived = true };
+                var typeBuilderInfo = new TypeBuilderInfo() {Builder = typeBuilder, IsDerived = true};
                 _typeBuildersDict.Add(moduleName, typeBuilderInfo);
                 _builderQueue.Enqueue(typeBuilderInfo);
                 return typeBuilder;
@@ -177,7 +176,7 @@
             else
             {
                 var typeBuilder = moduleBuilder.DefineType(moduleName, TypeAttributes.Class | TypeAttributes.Public);
-                var builderInfo = new TypeBuilderInfo() { Builder = typeBuilder, IsDerived = false };
+                var builderInfo = new TypeBuilderInfo() {Builder = typeBuilder, IsDerived = false};
                 _typeBuildersDict.Add(moduleName, builderInfo);
                 _builderQueue.Enqueue(builderInfo);
 
@@ -240,7 +239,7 @@
             }
 
             EnumBuilder typeBuilder = moduleBuilder.DefineEnum(moduleName, TypeAttributes.Public, typeof(int));
-            var builderInfo = new TypeBuilderInfo() { Builder = typeBuilder, IsDerived = false };
+            var builderInfo = new TypeBuilderInfo() {Builder = typeBuilder, IsDerived = false};
             _typeBuildersDict.Add(moduleName, builderInfo);
             _builderQueue.Enqueue(builderInfo);
             return typeBuilder;
@@ -382,7 +381,9 @@
 
             // See if assembly already exists
             AppDomain appDomain = AppDomain.CurrentDomain;
-            Assembly assembly = appDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName);
+            //Assembly assembly = appDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName);
+
+            Assembly assembly = null;
 
             if (assembly == null)
             {
@@ -391,7 +392,8 @@
 
                 // Build Assembly
                 AssemblyName assembly_Name = new AssemblyName(assemblyName);
-                AssemblyBuilder assemblyBuilder = appDomain.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.RunAndSave);
+                //AssemblyBuilder assemblyBuilder = appDomain.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.RunAndSave);
+                AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.Run);
                 ModuleBuilder module = assemblyBuilder.DefineDynamicModule($"{assembly_Name.Name}");
                 BuildModules(model, module, dbContextName);
                 //assemblyBuilder.Save($"{assembly_Name.Name}.dll");
@@ -413,6 +415,19 @@
             // try to pass back to calling assembly. This does not work.
             AppDomain domain = AppDomain.CurrentDomain.GetData("domain") as AppDomain;
             domain.SetData("contextType", dbContextType);
+        }
+    }
+
+    public class Program
+    {
+        // support cmd-line for testing
+        static void Main(string[] args)
+        {
+            //TODO: grab edm path and assembly name from cmdline args
+            string csdlFile = @"Trippin.xml";
+
+            DbContextGenerator generator = new DbContextGenerator();
+            generator.GenerateDbContext(csdlFile);
         }
     }
 }

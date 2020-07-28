@@ -1,23 +1,22 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
-
-namespace EdmObjectsGenerator
+﻿namespace EdmObjectsGenerator
 {
+    using System;
+    using System.Linq;
+    using System.Reflection;
+    using System.Reflection.Emit;
 
     public class PropertyBuilderHelper
     {
         // null keyIndex means the property is not a key.
         // keyIndex of -1 means the key is the only key property.
         // keyIndex > -1 means the key is part of a multi-part key, as indicated by the index
-        public static void BuildProperty(TypeBuilder typeBuilder, string fieldName, Type fieldType, int? keyIndex = null)
+        public static void BuildProperty(TypeBuilder typeBuilder,  string fieldName, Type fieldType, int? keyIndex = null)
         {
             FieldBuilder fieldBldr = typeBuilder.DefineField(fieldName,
                                                             fieldType,
                                                             FieldAttributes.Private);
 
-
+           
             PropertyBuilder propBuilder = typeBuilder.DefineProperty(fieldName,
                                                              PropertyAttributes.HasDefault,
                                                              fieldType,
@@ -69,7 +68,7 @@ namespace EdmObjectsGenerator
             custNameSetIL.Emit(OpCodes.Ldarg_1);
             custNameSetIL.Emit(OpCodes.Stfld, fieldBldr);
             custNameSetIL.Emit(OpCodes.Ret);
-
+           
             propBuilder.SetGetMethod(propMethodBldr);
             propBuilder.SetSetMethod(propSetMethodBldr);
         }
