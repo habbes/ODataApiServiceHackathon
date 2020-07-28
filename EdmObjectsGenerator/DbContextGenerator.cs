@@ -377,6 +377,12 @@
         {
             // Get name for assembly
             string dbContextName = csdlFileName.Split('\\').Last().Replace(".xml", "");
+            return GenerateDbContext(csdlFileName, dbContextName);
+        }
+
+        public Type GenerateDbContext(string csdlFileName, string dbContextName)
+        {
+            // Get name for assembly
             string assemblyName = dbContextName + "_Assembly";
 
             // See if assembly already exists
@@ -403,6 +409,25 @@
 
             // Return generated DbContext
             return assembly.GetTypes().FirstOrDefault(t => t.Name == dbContextName);
+        }
+
+        public void GenerateContextAssembly(string csdlFileName, string dbContextName)
+        {
+            string assemblyName = dbContextName + "_Assembly";
+
+            AppDomain appDomain = AppDomain.CurrentDomain;
+            // Load model
+            IEdmModel model = ReadModel(csdlFileName);
+
+
+            // Build Assembly
+            AssemblyName assembly_Name = new AssemblyName(assemblyName);
+            //AssemblyBuilder assemblyBuilder = appDomain.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.RunAndSave);
+            AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.RunAndSave);
+            ModuleBuilder module = assemblyBuilder.DefineDynamicModule($"{assembly_Name.Name}");
+            BuildModules(model, module, dbContextName);
+            assemblyBuilder.Save($"{assembly_Name.Name}.dll");
+            appDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName);
         }
 
         public void GenerateDbContextInANewAppDomain()

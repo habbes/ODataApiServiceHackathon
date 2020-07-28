@@ -7,7 +7,7 @@ namespace DummyTests
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World");
+            Console.WriteLine("");
             DbContextGenerator generator = new DbContextGenerator();
             var context = generator.GenerateDbContext(@"SampleModel.xml");
         }
