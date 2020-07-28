@@ -22,16 +22,7 @@ namespace Hackathon2020.Poc01.Lib
                 if (controller.ControllerType.IsGenericType)
                 {
                     Type genericType = controller.ControllerType.GenericTypeArguments.First();
-                    //var dynamicControllerAttribute = genericType.GetCustomAttribute<DynamicControllerAttribute>();
                     var entitySet = _model.EntityContainer.EntitySets().FirstOrDefault(e => e.EntityType().Name == genericType.Name);
-
-                    //if (dynamicControllerAttribute?.Route != null)
-                    //{
-                    //    controller.Selectors.Add(new SelectorModel
-                    //    {
-                    //        AttributeRouteModel = new AttributeRouteModel(new RouteAttribute(dynamicControllerAttribute.Route)),
-                    //    });
-                    //}
 
                     if (entitySet != null)
                     {

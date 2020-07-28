@@ -1,4 +1,5 @@
 ﻿using Hackathon2020.Poc01.Controllers;
+using Hackathon2020.Poc01.Data;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.OData.Edm;
@@ -19,9 +20,7 @@ namespace Hackathon2020.Poc01.Lib
 
         public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature)
         {
-            //Assembly targetAssembly = typeof(DynamicControllerFeatureProvider).Assembly;
-            Assembly targetAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name.Contains("SampleModel"));
-            //IEnumerable<Type> targetTypes = targetAssembly.GetExportedTypes().Where(d => d.GetCustomAttributes(typeof(DynamicControllerAttribute), true).Any());
+            Assembly targetAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name.Contains(DbContextConstants.Name));
             var targetTypes = targetAssembly.DefinedTypes;
 
             var entitySets = _model.EntityContainer.EntitySets();
@@ -33,12 +32,6 @@ namespace Hackathon2020.Poc01.Lib
                     typeof(DynamicControllerBase<>).MakeGenericType(type).GetTypeInfo()
                 );
             }
-            //foreach (Type type in targetTypes)
-            //{
-            //    feature.Controllers.Add(
-            //        typeof(DynamicControllerBase<>).MakeGenericType(type).GetTypeInfo()
-            //    );
-            //}
         }
     }
 }

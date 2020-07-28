@@ -1,4 +1,5 @@
 using EdmObjectsGenerator;
+using Hackathon2020.Poc01.Data;
 //using Hackathon2020.Poc01.Data;
 using Hackathon2020.Poc01.Lib;
 //using Hackathon2020.Poc01.Models;
@@ -39,7 +40,7 @@ namespace Hackathon2020.Poc01
         {
 
             DbContextGenerator generator = new DbContextGenerator();
-            var contextType = generator.GenerateDbContext(@"SampleModel.xml");
+            var contextType = generator.GenerateDbContext(DbContextConstants.CsdlFile, DbContextConstants.Name);
             
             services.AddSingleton(this.Configuration);
             //services.AddDbContext<DbContext, InMemoryDbContext>(options => options.UseInMemoryDatabase(databaseName: "Hackathon2020.Poc01Db"));
@@ -56,11 +57,7 @@ namespace Hackathon2020.Poc01
                     options.Conventions.Insert(0, new DynamicControllerModelConvention(Model.GetModel()));
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
-                .ConfigureApplicationPartManager(d => {
-                    d.ApplicationParts.Add(new AssemblyPart(
-                        AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name.Contains("Sample"))));
-                    d.FeatureProviders.Add(new DynamicControllerFeatureProvider(Model.GetModel()));
-                });
+                .ConfigureApplicationPartManager(d =>  d.FeatureProviders.Add(new DynamicControllerFeatureProvider(Model.GetModel())));
             services.AddControllers();
             services.AddOData();
         }
@@ -73,10 +70,6 @@ namespace Hackathon2020.Poc01
             }
 
             app.UseRouting();
-            //var modelBuilder = new ODataConventionModelBuilder();
-            //modelBuilder.EntitySet<Product>("Products");
-            //modelBuilder.EntitySet<Supplier>("Suppliers");
-            //modelBuilder.EntitySet<Customer>("Customers");
 
 
             app.UseMvc(routeBuilder =>
@@ -88,35 +81,6 @@ namespace Hackathon2020.Poc01
                 routeBuilder.Filter().Expand().Select().OrderBy().MaxTop(null).SkipToken();
                 routeBuilder.MapODataServiceRoute("odata", "odata", Model.GetModel(), new DefaultODataPathHandler(), routingConventions);
             });
-
-            using (IServiceScope serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
-            {
-                DbContext db = serviceScope.ServiceProvider.GetRequiredService<DbContext>();
-
-                //if (!db.Set<Product>().Any())
-                //{
-                //    db.Set<Product>().AddRange(
-                //        new[]
-                //        {
-                //            new Product { Id = 1, Name = "Microsoft Xbox One X - 1TB Console - Black", UnitPrice = 45000M },
-                //            new Product { Id = 2, Name = "Microsoft Microsoft Surface Pro 3 36W Power Supply", UnitPrice = 5700M },
-                //        });
-
-                //    db.Set<Supplier>().AddRange(
-                //        new[]
-                //        {
-                //            new Supplier { Id = 1, Name = "ABC Limited", Website = "www.abc.ltd" },
-                //            new Supplier { Id = 2, Name = "XYZ Limited", Website = "www.xyz.ltd" }
-                //        });
-
-                //    db.Set<Customer>().AddRange(
-                //        new[] {
-                //            new Customer { Id = 1, Name = "General Merchants " }
-                //        });
-
-                //    db.SaveChanges();
-                //}
-            }
         }
     }
 
@@ -127,21 +91,11 @@ namespace Hackathon2020.Poc01
         {
             if (instance == null)
             {
-                var xmlReader = XmlReader.Create("SampleModel.xml");
+                var xmlReader = XmlReader.Create(DbContextConstants.CsdlFile);
                 instance = CsdlReader.Parse(xmlReader);
             }
 
             return instance;
         }
     }
-
-    //public class MyContext : DbContext
-    //{
-    //    public MyContext() : base("Server=(localdb)\\MSSQLLocalDB;Database=SampleModel;Trusted_Connection=True;MultipleActiveResultSets=true")
-    //    {
-
-    //    }
-
-    //    public DbSet<Customer> Customers { get; set; }
-    //}
 }
