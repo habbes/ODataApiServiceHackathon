@@ -25,6 +25,7 @@ namespace Hackathon2020.Poc01.Lib
             var targetTypes = targetAssembly.DefinedTypes;
 
             var entitySets = _model.EntityContainer.EntitySets();
+
             foreach (var entitySet in entitySets)
             {
                 var type = targetTypes.First(t => t.Name == entitySet.EntityType().Name);

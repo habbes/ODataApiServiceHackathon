@@ -9,6 +9,7 @@ namespace Hackathon2020.Poc01.Lib
         public DynamicControllerAttribute(string route)
         {
             Route = route;
+            
         }
     }
 }

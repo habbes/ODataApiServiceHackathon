@@ -10,6 +10,7 @@ using Microsoft.AspNet.OData.Routing.Conventions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 //using Microsoft.EntityFrameworkCore;
 //using Microsoft.EntityFramework;
 using Microsoft.Extensions.Configuration;
@@ -55,7 +56,11 @@ namespace Hackathon2020.Poc01
                     options.Conventions.Insert(0, new DynamicControllerModelConvention(Model.GetModel()));
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
-                .ConfigureApplicationPartManager(d => d.FeatureProviders.Add(new DynamicControllerFeatureProvider(Model.GetModel())));
+                .ConfigureApplicationPartManager(d => {
+                    d.ApplicationParts.Add(new AssemblyPart(
+                        AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name.Contains("Sample"))));
+                    d.FeatureProviders.Add(new DynamicControllerFeatureProvider(Model.GetModel()));
+                });
             services.AddControllers();
             services.AddOData();
         }
