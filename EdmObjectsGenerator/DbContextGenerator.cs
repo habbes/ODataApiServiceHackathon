@@ -390,6 +390,7 @@
                 // Load model
                 IEdmModel model = ReadModel(csdlFileName);
 
+
                 // Build Assembly
                 AssemblyName assembly_Name = new AssemblyName(assemblyName);
                 //AssemblyBuilder assemblyBuilder = appDomain.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.RunAndSave);
