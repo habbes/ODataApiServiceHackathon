@@ -5,11 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="SampleModel.xml" />
+    <None Remove="ODataCsdl.xml" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="SampleModel.xml">
+    <Content Include="ODataCsdl.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
