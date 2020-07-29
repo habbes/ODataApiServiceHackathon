@@ -10,10 +10,11 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Microsoft.AspNet.OData.Adapters
 {
+    // HACKATHON NOTE: changed from internal to public
     /// <summary>
     /// Adapter class to convert Asp.Net WebApi controller context to OData WebApi.
     /// </summary>
-    internal class WebApiControllerContext : IWebApiControllerContext
+    public class WebApiControllerContext : IWebApiControllerContext
     {
         /// <summary>
         /// The inner context wrapped by this instance.

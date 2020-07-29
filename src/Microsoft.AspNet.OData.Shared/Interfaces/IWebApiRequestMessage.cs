@@ -11,6 +11,7 @@ using Microsoft.OData;
 
 namespace Microsoft.AspNet.OData.Interfaces
 {
+    // HACKATHON NOTE: changed from internal to public
     /// <summary>
     /// Represents a HTTP request message.
     /// </summary>
@@ -19,7 +20,7 @@ namespace Microsoft.AspNet.OData.Interfaces
     /// implementations of SelectControl(). Any design which makes this class public
     /// should find an alternative design.
     /// </remarks>
-    internal interface IWebApiRequestMessage
+    public interface IWebApiRequestMessage
     {
         /// <summary>
         /// Gets the contents of the HTTP message.

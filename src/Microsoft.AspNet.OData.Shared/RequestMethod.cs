@@ -3,10 +3,11 @@
 
 namespace Microsoft.AspNet.OData
 {
+    // HACKATHON NOTE: changed from internal to public
     /// <summary>
     /// An enumeration for request methods.
     /// </summary>
-    internal enum ODataRequestMethod
+    public enum ODataRequestMethod
     {
         /// <summary>
         /// An unknown method.

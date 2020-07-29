@@ -14,8 +14,19 @@ using Microsoft.OData.UriParser;
 
 namespace Microsoft.AspNet.OData.Routing.Conventions
 {
-    internal static class RoutingConventionHelpers
+    // HACKATHON NOTE: changed from internal to public
+    /// <summary>
+    /// 
+    /// </summary>
+    public static class RoutingConventionHelpers
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="operation"></param>
+        /// <param name="actionMap"></param>
+        /// <param name="isCollection"></param>
+        /// <returns></returns>
         public static string SelectAction(this IEdmOperation operation, IWebApiActionMap actionMap, bool isCollection)
         {
             Contract.Assert(actionMap != null);
@@ -57,6 +68,13 @@ namespace Microsoft.AspNet.OData.Routing.Conventions
             return null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="templateParameters"></param>
+        /// <param name="parameters"></param>
+        /// <param name="matches"></param>
+        /// <returns></returns>
         public static bool TryMatch(
             IDictionary<string, string> templateParameters,
             IDictionary<string, object> parameters,
@@ -95,6 +113,13 @@ namespace Microsoft.AspNet.OData.Routing.Conventions
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="keySegment"></param>
+        /// <param name="mapping"></param>
+        /// <param name="values"></param>
+        /// <returns></returns>
         public static bool TryMatch(this KeySegment keySegment, IDictionary<string, string> mapping, IDictionary<string, object> values)
         {
             Contract.Assert(keySegment != null);
@@ -148,6 +173,12 @@ namespace Microsoft.AspNet.OData.Routing.Conventions
             return true;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="segment"></param>
+        /// <param name="keyName"></param>
         public static void AddKeyValueToRouteData(this IWebApiControllerContext controllerContext, KeySegment segment, string keyName = "key")
         {
             Contract.Assert(controllerContext != null);
@@ -226,6 +257,11 @@ namespace Microsoft.AspNet.OData.Routing.Conventions
             odataValues[prefixName] = odataValue;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="importSegment"></param>
         public static void AddFunctionParameterToRouteData(this IWebApiControllerContext controllerContext, OperationImportSegment importSegment)
         {
             Contract.Assert(controllerContext != null);
@@ -265,6 +301,11 @@ namespace Microsoft.AspNet.OData.Routing.Conventions
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="controllerContext"></param>
+        /// <param name="functionSegment"></param>
         public static void AddFunctionParameterToRouteData(this IWebApiControllerContext controllerContext, OperationSegment functionSegment)
         {
             Contract.Assert(controllerContext != null);
@@ -303,6 +344,15 @@ namespace Microsoft.AspNet.OData.Routing.Conventions
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="function"></param>
+        /// <param name="paramName"></param>
+        /// <param name="paramValue"></param>
+        /// <param name="routeData"></param>
+        /// <param name="values"></param>
+        /// <param name="paramMapping"></param>
         public static void AddFunctionParameters(IEdmFunction function, string paramName, object paramValue, 
             IDictionary<string, object> routeData, IDictionary<string, object> values, IDictionary<string, string> paramMapping)
         {
@@ -343,6 +393,12 @@ namespace Microsoft.AspNet.OData.Routing.Conventions
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="segment"></param>
+        /// <returns></returns>
         public static IDictionary<string, string> BuildParameterMappings(
             IEnumerable<OperationSegmentParameter> parameters, string segment)
         {
@@ -389,6 +445,11 @@ namespace Microsoft.AspNet.OData.Routing.Conventions
             return parameterMappings;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parameterName"></param>
+        /// <returns></returns>
         public static bool IsRouteParameter(string parameterName)
         {
             return parameterName.StartsWith("{", StringComparison.Ordinal) &&

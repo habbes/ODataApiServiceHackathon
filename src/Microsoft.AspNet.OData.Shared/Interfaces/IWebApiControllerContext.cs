@@ -6,6 +6,7 @@ using Microsoft.AspNet.OData.Routing.Conventions;
 
 namespace Microsoft.AspNet.OData.Interfaces
 {
+    // HACKATHON NOTE: changed from internal to public
     /// <summary>
     /// Contains information for a single HTTP operation.
     /// </summary>
@@ -14,7 +15,7 @@ namespace Microsoft.AspNet.OData.Interfaces
     /// implementations of SelectControl(). Any design which makes this class public
     /// should find an alternative design.
     /// </remarks>
-    internal interface IWebApiControllerContext
+    public interface IWebApiControllerContext
     {
         /// <summary>
         /// The selected controller result.
