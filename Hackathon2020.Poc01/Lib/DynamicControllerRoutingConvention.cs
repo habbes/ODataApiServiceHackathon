@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNet.OData.Extensions;
+﻿using Microsoft.AspNet.OData.Adapters;
+using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing.Conventions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
@@ -147,6 +148,8 @@ namespace Hackathon2020.Poc01.Lib
                 {
                     KeySegment keySegment = (KeySegment)odataPath.Segments[1];
                     // TODO: Add key/value to RouteData
+                    var controllerContext = new WebApiControllerContext(routeContext, controllerResult);
+                    controllerContext.AddKeyValueToRouteData(keySegment);
                     return actionName;
                 }
             }
