@@ -11,6 +11,7 @@ using ODataPath = Microsoft.AspNet.OData.Routing.ODataPath;
 
 namespace Microsoft.AspNet.OData.Interfaces
 {
+    // HACKATHON NOTE: changed from internal to public
     /// <summary>
     /// General context for WebApi.
     /// </summary>
@@ -19,7 +20,7 @@ namespace Microsoft.AspNet.OData.Interfaces
     /// implementations of SelectControl(). Any design which makes this class public
     /// should find an alternative design.
     /// </remarks>
-    internal interface IWebApiContext
+    public interface IWebApiContext
     {
         /// <summary>
         /// Gets or sets the parsed OData <see cref="ApplyClause"/> of the request.

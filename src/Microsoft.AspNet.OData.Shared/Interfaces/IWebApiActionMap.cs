@@ -3,6 +3,7 @@
 
 namespace Microsoft.AspNet.OData.Interfaces
 {
+    // HACKATHON NOTE: changed from internal to public
     /// <summary>
     /// An interface used to search for an available action.
     /// </summary>
@@ -11,7 +12,7 @@ namespace Microsoft.AspNet.OData.Interfaces
     /// implementations of SelectControl(). Any design which makes this class public
     /// should find an alternative design.
     /// </remarks>
-    internal interface IWebApiActionMap
+    public interface IWebApiActionMap
     {
         /// <summary>
         /// Determines whether a specified key exists.

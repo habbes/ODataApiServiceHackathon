@@ -428,7 +428,9 @@ namespace Microsoft.AspNet.OData
             foreach (Assembly assembly in assemblies)
             {
                 Type[] exportedTypes = null;
-                if (assembly == null || assembly.IsDynamic)
+                // HACKATHON NOTE: WebApi excluded types from dynamic assemblies. I've removed that condition because
+                // our model types come from a dynamic assembly
+                if (assembly == null)
                 {
                     // can't call GetTypes on a null (or dynamic?) assembly
                     continue;

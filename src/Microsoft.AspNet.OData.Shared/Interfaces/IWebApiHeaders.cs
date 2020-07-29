@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.AspNet.OData.Interfaces
 {
+    // HACKATHON NOTE: changed from internal to public
     /// <summary>
     /// Represents the collection of Request Headers as defined in RFC 2616.
     /// </summary>
@@ -13,7 +14,7 @@ namespace Microsoft.AspNet.OData.Interfaces
     /// implementations of SelectControl(). Any design which makes this class public
     /// should find an alternative design.
     /// </remarks>
-    internal interface IWebApiHeaders
+    public interface IWebApiHeaders
     {
         /// <summary>
         /// Return if a specified header and specified values are stored in the collection.

@@ -5,6 +5,7 @@ using Microsoft.OData;
 
 namespace Microsoft.AspNet.OData.Interfaces
 {
+    // HACKATHON NOTE: changed from internal to public
     /// <summary>
     /// An interface for WebApi options.
     /// </summary>
@@ -13,7 +14,7 @@ namespace Microsoft.AspNet.OData.Interfaces
     /// implementations of SelectControl(). Any design which makes this class public
     /// should find an alternative design.
     /// </remarks>
-    internal interface IWebApiOptions
+    public interface IWebApiOptions
     {
         /// <summary>
         /// Gets or Sets the <see cref="ODataUrlKeyDelimiter"/> to use while parsing, specifically
