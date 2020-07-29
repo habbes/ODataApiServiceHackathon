@@ -147,7 +147,6 @@ namespace Hackathon2020.Poc01.Lib
                 if (actionName != null)
                 {
                     KeySegment keySegment = (KeySegment)odataPath.Segments[1];
-                    // TODO: Add key/value to RouteData
                     var controllerContext = new WebApiControllerContext(routeContext, controllerResult);
                     controllerContext.AddKeyValueToRouteData(keySegment);
                     return actionName;

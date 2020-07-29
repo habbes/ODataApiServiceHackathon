@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="project.csdl">
+    <Content Include="Project.csdl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

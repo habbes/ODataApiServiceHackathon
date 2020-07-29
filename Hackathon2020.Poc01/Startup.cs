@@ -42,15 +42,12 @@ namespace Hackathon2020.Poc01
             DbContextGenerator generator = new DbContextGenerator();
             var contextType = generator.GenerateDbContext(DbContextConstants.CsdlFile, DbContextConstants.Name);
             
+            var connectionString = $"Server=(localdb)\\MSSQLLocalDB;Database={DbContextConstants.Name};Trusted_Connection=True;MultipleActiveResultSets=true";
+            DbContext dbContext = Activator.CreateInstance(contextType, new object[] { connectionString }) as DbContext;
+            dbContext.Database.CreateIfNotExists();
+
             services.AddSingleton(this.Configuration);
-            //services.AddDbContext<DbContext, InMemoryDbContext>(options => options.UseInMemoryDatabase(databaseName: "Hackathon2020.Poc01Db"));
-            services.AddSingleton<DbContext>(sp =>
-            {
-                var connectionString = $"Server=(localdb)\\MSSQLLocalDB;Database={DbContextConstants.Name};Trusted_Connection=True;MultipleActiveResultSets=true";
-                DbContext dbContext = Activator.CreateInstance(contextType, new object[] { connectionString }) as DbContext;
-                dbContext.Database.CreateIfNotExists();
-                return dbContext;
-            });
+            services.AddSingleton(typeof(DbContext), dbContext);
 
             services.AddMvc(options => {
                     options.EnableEndpointRouting = false;
@@ -78,7 +75,7 @@ namespace Hackathon2020.Poc01
                 routingConventions.Insert(0, new DynamicControllerRoutingConvention());
 
                 routeBuilder.EnableDependencyInjection();
-                routeBuilder.Filter().Expand().Select().OrderBy().MaxTop(null).SkipToken();
+                routeBuilder.Filter().Expand().Select().OrderBy().Count().MaxTop(null).SkipToken();
                 routeBuilder.MapODataServiceRoute("odata", "odata", Model.GetModel(), new DefaultODataPathHandler(), routingConventions);
             });
         }
