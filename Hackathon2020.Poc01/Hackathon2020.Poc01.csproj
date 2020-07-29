@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EdmObjectsGenerator\EdmObjectsGenerator.csproj" />
-    <ProjectReference Include="..\WebApi\src\Microsoft.AspNetCore.OData\Microsoft.AspNetCore.OData.csproj" />
+    <ProjectReference Include="..\src\Microsoft.AspNetCore.OData\Microsoft.AspNetCore.OData.csproj" />
   </ItemGroup>
 
   <ItemGroup>
