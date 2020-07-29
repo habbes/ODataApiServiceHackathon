@@ -5,12 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="ODataCsdl.xml" />
+    <None Remove="project.csdl" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="ODataCsdl.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="project.csdl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
