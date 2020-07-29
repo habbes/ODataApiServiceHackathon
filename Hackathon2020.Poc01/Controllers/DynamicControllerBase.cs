@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNet.OData;
 using Microsoft.AspNetCore.Mvc;
 using System.Data.Entity;
-//using Microsoft.EntityFrameworkCore;
 using System.Linq;
 
 namespace Hackathon2020.Poc01.Controllers
 {
-    [Route("[controller]")]
-    [ApiController]
-    public class DynamicControllerBase<TEntity> : ODataController where TEntity : class//ControllerBase where TEntity : class
+    public class DynamicControllerBase<TEntity> : ODataController where TEntity : class
     {
         private readonly DbContext _db;
 
@@ -20,8 +17,7 @@ namespace Hackathon2020.Poc01.Controllers
         [EnableQuery]
         public IQueryable<TEntity> Get()
         {
-            var values = _db.Set<TEntity>();
-            return values;
+            return _db.Set<TEntity>();
         }
 
         public ActionResult Get([FromODataUri] int key)
@@ -84,6 +80,12 @@ namespace Hackathon2020.Poc01.Controllers
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            var entity = _db.Set<TEntity>().Find(key);
+            if (entity == null)
+            {
+                return NotFound();
             }
 
             _db.Entry(update).State = EntityState.Modified;

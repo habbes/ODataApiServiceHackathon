@@ -1,9 +1,6 @@
 using EdmObjectsGenerator;
 using Hackathon2020.Poc01.Data;
-//using Hackathon2020.Poc01.Data;
 using Hackathon2020.Poc01.Lib;
-//using Hackathon2020.Poc01.Models;
-//using Hackathon2020.Poc01.Models;
 using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing;
@@ -11,9 +8,6 @@ using Microsoft.AspNet.OData.Routing.Conventions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
-//using Microsoft.EntityFrameworkCore;
-//using Microsoft.EntityFramework;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,11 +32,10 @@ namespace Hackathon2020.Poc01
 
         public void ConfigureServices(IServiceCollection services)
         {
-
             DbContextGenerator generator = new DbContextGenerator();
             var contextType = generator.GenerateDbContext(DbContextConstants.CsdlFile, DbContextConstants.Name);
-            
-            var connectionString = $"Server=(localdb)\\MSSQLLocalDB;Database={DbContextConstants.Name};Trusted_Connection=True;MultipleActiveResultSets=true";
+
+            string connectionString = this.Configuration.GetConnectionString("Hackathon2020DbConnectionString");
             DbContext dbContext = Activator.CreateInstance(contextType, new object[] { connectionString }) as DbContext;
             dbContext.Database.CreateIfNotExists();
 
@@ -66,17 +59,21 @@ namespace Hackathon2020.Poc01
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseRouting();
+            string routeName = "odata";
+            DefaultODataPathHandler pathHandler = new DefaultODataPathHandler();
 
+            app.UseRouting();
 
             app.UseMvc(routeBuilder =>
             {
                 IList<IODataRoutingConvention> routingConventions = ODataRoutingConventions.CreateDefault();
                 routingConventions.Insert(0, new DynamicControllerRoutingConvention());
+                // Add attribute routing (RE:#1622)
+                routingConventions.Insert(1, new AttributeRoutingConvention(routeName, routeBuilder.ServiceProvider, pathHandler));
 
                 routeBuilder.EnableDependencyInjection();
                 routeBuilder.Filter().Expand().Select().OrderBy().Count().MaxTop(null).SkipToken();
-                routeBuilder.MapODataServiceRoute("odata", "odata", Model.GetModel(), new DefaultODataPathHandler(), routingConventions);
+                routeBuilder.MapODataServiceRoute("odata", "odata", Model.GetModel(), pathHandler, routingConventions);
             });
         }
     }

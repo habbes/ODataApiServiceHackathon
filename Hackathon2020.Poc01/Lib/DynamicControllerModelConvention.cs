@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.OData.Edm;
 using System;
 using System.Linq;
-using System.Reflection;
 
 namespace Hackathon2020.Poc01.Lib
 {
