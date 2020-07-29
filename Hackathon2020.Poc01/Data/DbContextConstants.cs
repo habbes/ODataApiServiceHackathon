@@ -9,5 +9,6 @@ namespace Hackathon2020.Poc01.Data
     {
         public static readonly string Name = "Hackathon2020Db";
         public static readonly string CsdlFile = "Project.csdl";
+        public static readonly string ConnectionStringFile = "connectionstring.txt";
     }
 }

@@ -5,10 +5,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="connectionstring.txt" />
     <None Remove="project.csdl" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="connectionstring.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Project.csdl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

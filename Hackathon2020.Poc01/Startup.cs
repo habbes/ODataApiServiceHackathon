@@ -24,6 +24,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Xml;
+using System.IO;
 
 namespace Hackathon2020.Poc01
 {
@@ -41,8 +42,8 @@ namespace Hackathon2020.Poc01
 
             DbContextGenerator generator = new DbContextGenerator();
             var contextType = generator.GenerateDbContext(DbContextConstants.CsdlFile, DbContextConstants.Name);
-            
-            var connectionString = $"Server=(localdb)\\MSSQLLocalDB;Database={DbContextConstants.Name};Trusted_Connection=True;MultipleActiveResultSets=true";
+
+            var connectionString = File.ReadAllText(DbContextConstants.ConnectionStringFile).Trim();
             DbContext dbContext = Activator.CreateInstance(contextType, new object[] { connectionString }) as DbContext;
             dbContext.Database.CreateIfNotExists();
 
