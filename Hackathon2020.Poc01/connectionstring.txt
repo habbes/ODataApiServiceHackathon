@@ -1,1 +1,1 @@
-﻿Server=(localdb)\MSSQLLocalDB;Database=Hackathon2020;Trusted_Connection=True;MultipleActiveResultSets=true
+ConnectionString
