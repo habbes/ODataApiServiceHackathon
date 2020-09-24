@@ -1,1 +1,1 @@
-﻿Server=(localdb)\MSSQLLocalDB;Database=Hackathon2020;Trusted_Connection=True;MultipleActiveResultSets=true
+Server=tcp:sqlserverrapidapitest19.database.windows.net,1433;Database=rapidapitest19;User ID=RapidApiUser@sqlserverrapidapitest19;Password=RapidApi@{2020}YT22X;Trusted_Connection=False;Encrypt=True;
