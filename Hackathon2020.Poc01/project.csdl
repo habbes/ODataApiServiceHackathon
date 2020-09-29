@@ -1,109 +1,158 @@
-﻿<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="4.0" xmlns:ags="http://aggregator.microsoft.com/internal" xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" xmlns:odata="http://schemas.microsoft.com/oDataCapabilities" _presence_="$(In_Prd)">
   <edmx:DataServices>
-    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Hackathon2020.Poc01.Models">
-      <EntityType Name="Task">
+    <Schema Namespace="microsoft.toDo" xmlns="http://docs.oasis-open.org/odata/ns/edm" xmlns:ags="http://aggregator.microsoft.com/internal" xmlns:odata="http://schemas.microsoft.com/oDataCapabilities">
+      <EnumType Name="bodyType">
+        <Member Name="text" Value="0" />
+        <Member Name="html" Value="1" />
+      </EnumType>
+      <EnumType Name="dayOfWeek" ags:IsMaster="false">
+        <Member Name="sunday" Value="0" />
+        <Member Name="monday" Value="1" />
+        <Member Name="tuesday" Value="2" />
+        <Member Name="wednesday" Value="3" />
+        <Member Name="thursday" Value="4" />
+        <Member Name="friday" Value="5" />
+        <Member Name="saturday" Value="6" />
+      </EnumType>
+      <EnumType Name="importance">
+        <Member Name="low" Value="0" />
+        <Member Name="normal" Value="1" />
+        <Member Name="high" Value="2" />
+      </EnumType>
+      <EnumType Name="recurrencePatternType" ags:IsMaster="false">
+        <Member Name="daily" Value="0" />
+        <Member Name="weekly" Value="1" />
+        <Member Name="absoluteMonthly" Value="2" />
+        <Member Name="relativeMonthly" Value="3" />
+        <Member Name="absoluteYearly" Value="4" />
+        <Member Name="relativeYearly" Value="5" />
+      </EnumType>
+      <EnumType Name="recurrenceRangeType" ags:IsMaster="false">
+        <Member Name="endDate" Value="0" />
+        <Member Name="noEnd" Value="1" />
+        <Member Name="numbered" Value="2" />
+      </EnumType>
+      <EnumType Name="taskStatus">
+        <Member Name="notStarted" Value="0" />
+        <Member Name="inProgress" Value="1" />
+        <Member Name="completed" Value="2" />
+        <Member Name="waitingOnOthers" Value="3" />
+        <Member Name="deferred" Value="4" />
+      </EnumType>
+      <EnumType Name="weekIndex" ags:IsMaster="false">
+        <Member Name="first" Value="0" />
+        <Member Name="second" Value="1" />
+        <Member Name="third" Value="2" />
+        <Member Name="fourth" Value="3" />
+        <Member Name="last" Value="4" />
+      </EnumType>
+      <EnumType Name="wellknownListName">
+        <Member Name="none" Value="0" />
+        <Member Name="defaultList" Value="1" />
+        <Member Name="flaggedEmails" Value="2" />
+        <Member Name="unknownFutureValue" Value="3" />
+      </EnumType>
+      <ComplexType Name="dateTimeTimeZone">
+        <Property Name="dateTime" Type="Edm.String" Nullable="false" />
+        <Property Name="timeZone" Type="Edm.String" />
+      </ComplexType>
+      <ComplexType Name="itemBody">
+        <Property Name="content" Type="Edm.String" />
+        <Property Name="contentType" Type="microsoft.toDo.bodyType" />
+      </ComplexType>
+      <ComplexType Name="patternedRecurrence" ags:IsMaster="false">
+        <Property Name="pattern" Type="microsoft.toDo.recurrencePattern" />
+        <Property Name="range" Type="microsoft.toDo.recurrenceRange" />
+      </ComplexType>
+      <ComplexType Name="recurrencePattern" ags:IsMaster="false">
+        <Property Name="dayOfMonth" Type="Edm.Int32" Nullable="false" />
+        <Property Name="daysOfWeek" Type="Collection(microsoft.toDo.dayOfWeek)" />
+        <Property Name="firstdayOfWeek" Type="microsoft.toDo.dayOfWeek" />
+        <Property Name="index" Type="microsoft.toDo.weekIndex" />
+        <Property Name="interval" Type="Edm.Int32" Nullable="false" />
+        <Property Name="month" Type="Edm.Int32" Nullable="false" />
+        <Property Name="type" Type="microsoft.toDo.recurrencePatternType" />
+      </ComplexType>
+      <ComplexType Name="recurrenceRange" ags:IsMaster="false">
+        <Property Name="endDate" Type="Edm.Date" />
+        <Property Name="numberOfOccurrences" Type="Edm.Int32" Nullable="false" />
+        <Property Name="recurrenceTimeZone" Type="Edm.String" />
+        <Property Name="startDate" Type="Edm.Date" />
+        <Property Name="type" Type="microsoft.toDo.recurrenceRangeType" />
+      </ComplexType>
+      <EntityType Name="linkedResource" ags:IsMaster="true" ags:AddressUrl="https://substrate.office.com/todo/graph/v1/" ags:AddressUrlMSA="https://substrate.office.com/todo/graph/v1">
         <Key>
-          <PropertyRef Name="Id"/>
+          <PropertyRef Name="id" />
         </Key>
-        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
-        <Property Name="Description" Type="Edm.String"/>
-        <Property Name="ProjectId" Type="Edm.Int32"/>
-        <Property Name="MilestoneId" Type="Edm.Int32"/>
-        <Property Name="SupervisorId" Type="Edm.Int32"/>
-        <Property Name="Start" Type="Edm.DateTimeOffset" Nullable="false"/>
-        <Property Name="End" Type="Edm.DateTimeOffset" Nullable="false"/>
-        <NavigationProperty Name="Project" Type="Hackathon2020.Poc01.Models.Project">
-          <ReferentialConstraint Property="ProjectId" ReferencedProperty="Id"/>
+        <Property Name="applicationName" Type="Edm.String" />
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="externalId" Type="Edm.String" />
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="webUrl" Type="Edm.String" />
+      </EntityType>
+      <EntityType Name="todo" ags:IsMaster="true" ags:AddressUrl="https://substrate.office.com/todo/graph/v1/" ags:AddressUrlMSA="https://substrate.office.com/todo/graph/v1">
+        <Key>
+          <PropertyRef Name="id" />
+        </Key>
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <NavigationProperty Name="lists" Type="Collection(microsoft.toDo.todoTaskList)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+            <Record>
+              <PropertyValue Property="Supported" Bool="true" />
+            </Record>
+          </Annotation>
         </NavigationProperty>
-        <NavigationProperty Name="Milestone" Type="Hackathon2020.Poc01.Models.Milestone">
-          <ReferentialConstraint Property="MilestoneId" ReferencedProperty="Id"/>
+      </EntityType>
+      <EntityType Name="todoTask" ags:IsMaster="true" ags:AddressUrl="https://substrate.office.com/todo/graph/v1/" ags:AddressUrlMSA="https://substrate.office.com/todo/graph/v1">
+        <Key>
+          <PropertyRef Name="id" />
+        </Key>
+        <Property Name="body" Type="microsoft.toDo.itemBody" />
+        <Property Name="bodyLastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="completedDateTime" Type="microsoft.toDo.dateTimeTimeZone" />
+        <Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="dueDateTime" Type="microsoft.toDo.dateTimeTimeZone" />
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="importance" Type="microsoft.toDo.importance" Nullable="false" />
+        <Property Name="isReminderOn" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="recurrence" Type="microsoft.toDo.patternedRecurrence" />
+        <Property Name="reminderDateTime" Type="microsoft.toDo.dateTimeTimeZone" />
+        <Property Name="status" Type="microsoft.toDo.taskStatus" Nullable="false" />
+        <Property Name="title" Type="Edm.String" />
+        <NavigationProperty Name="extensions" Type="Collection(microsoft.graph.extension)" ContainsTarget="true" ags:MasterService="Microsoft.Todo" />
+        <NavigationProperty Name="linkedResources" Type="Collection(microsoft.toDo.linkedResource)" ContainsTarget="true" />
+      </EntityType>
+      <EntityType Name="todoTaskList" ags:IsMaster="true" ags:AddressUrl="https://substrate.office.com/todo/graph/v1/" ags:AddressUrlMSA="https://substrate.office.com/todo/graph/v1">
+        <Key>
+          <PropertyRef Name="id" />
+        </Key>
+        <Property Name="displayName" Type="Edm.String" />
+        <Property Name="id" Type="Edm.String" Nullable="false" />
+        <Property Name="isOwner" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="isShared" Type="Edm.Boolean" Nullable="false" />
+        <Property Name="wellknownListName" Type="microsoft.toDo.wellknownListName" Nullable="false" />
+        <NavigationProperty Name="extensions" Type="Collection(microsoft.graph.extension)" ContainsTarget="true" ags:MasterService="Microsoft.Todo" />
+        <NavigationProperty Name="tasks" Type="Collection(microsoft.toDo.todoTask)" ContainsTarget="true">
+          <Annotation Term="Org.OData.Capabilities.V1.ChangeTracking">
+            <Record>
+              <PropertyValue Property="Supported" Bool="true" />
+            </Record>
+          </Annotation>
         </NavigationProperty>
-        <NavigationProperty Name="Supervisor" Type="Hackathon2020.Poc01.Models.Employee">
-          <ReferentialConstraint Property="SupervisorId" ReferencedProperty="Id"/>
-        </NavigationProperty>
       </EntityType>
-      <EntityType Name="Milestone">
-        <Key>
-          <PropertyRef Name="Id"/>
-        </Key>
-        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
-        <Property Name="Name" Type="Edm.String"/>
-        <Property Name="ProjectId" Type="Edm.Int32"/>
-        <Property Name="Start" Type="Edm.DateTimeOffset" Nullable="false"/>
-        <Property Name="End" Type="Edm.DateTimeOffset" Nullable="false"/>
-        <NavigationProperty Name="Project" Type="Hackathon2020.Poc01.Models.Project">
-          <ReferentialConstraint Property="ProjectId" ReferencedProperty="Id"/>
-        </NavigationProperty>
-        <NavigationProperty Name="Tasks" Type="Collection(Hackathon2020.Poc01.Models.Task)"/>
+      <EntityType Name="user">
+        <NavigationProperty Name="todo" Type="microsoft.toDo.todo" ContainsTarget="true" ags:AddressUrl="https://substrate.office.com/todo/graph/v1/users('[sourceEntityId]')/todoApp" ags:AddressUrlMSA="https://substrate.office.com/todo/graph/v1/users('[sourceEntityId]')/todoApp" />
       </EntityType>
-      <EntityType Name="Employee">
-        <Key>
-          <PropertyRef Name="Id"/>
-        </Key>
-        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
-        <Property Name="Name" Type="Edm.String"/>
-        <Property Name="ManagerId" Type="Edm.Int32"/>
-        <NavigationProperty Name="Manager" Type="Hackathon2020.Poc01.Models.Employee">
-          <ReferentialConstraint Property="ManagerId" ReferencedProperty="Id"/>
-        </NavigationProperty>
-        <NavigationProperty Name="Tasks" Type="Collection(Hackathon2020.Poc01.Models.Task)"/>
-      </EntityType>
-      <EntityType Name="Project">
-        <Key>
-          <PropertyRef Name="Id"/>
-        </Key>
-        <Property Name="Id" Type="Edm.Int32" Nullable="false"/>
-        <Property Name="Name" Type="Edm.String"/>
-        <Property Name="ManagerId" Type="Edm.Int32"/>
-        <Property Name="Start" Type="Edm.DateTimeOffset" Nullable="false"/>
-        <Property Name="End" Type="Edm.DateTimeOffset" Nullable="false"/>
-        <NavigationProperty Name="Manager" Type="Hackathon2020.Poc01.Models.Employee">
-          <ReferentialConstraint Property="ManagerId" ReferencedProperty="Id"/>
-        </NavigationProperty>
-        <NavigationProperty Name="Tasks" Type="Collection(Hackathon2020.Poc01.Models.Task)"/>
-        <NavigationProperty Name="Milestones" Type="Collection(Hackathon2020.Poc01.Models.Milestone)"/>
-      </EntityType>
-      <EntityType Name="Product">
-        <Key>
-          <PropertyRef Name="Id" />
-        </Key>
-        <Property Name="Id" Type="Edm.Int32" Nullable="false" />
-        <Property Name="Name" Type="Edm.String" />
-        <Property Name="UnitPrice" Type="Edm.Decimal" Nullable="false" />
-      </EntityType>
-      <EntityType Name="Supplier">
-        <Key>
-          <PropertyRef Name="Id" />
-        </Key>
-        <Property Name="Id" Type="Edm.Int32" Nullable="false" />
-        <Property Name="Name" Type="Edm.String" />
-        <Property Name="Website" Type="Edm.String" />
-      </EntityType>
-      <EntityType Name="Customer">
-        <Key>
-          <PropertyRef Name="Id" />
-        </Key>
-        <Property Name="Id" Type="Edm.Int32" Nullable="false" />
-        <Property Name="Name" Type="Edm.String" />
-      </EntityType>
-    </Schema>
-    <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Default">
-      <Function Name="KeyProjects" IsBound="true">
-        <Parameter Name="bindingParameter" Type="Collection(Hackathon2020.Poc01.Models.Project)"/>
-        <ReturnType Type="Collection(Hackathon2020.Poc01.Models.Project)"/>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.toDo.todoTask)" />
+        <ReturnType Type="Collection(microsoft.toDo.todoTask)" />
       </Function>
-      <EntityContainer Name="Container">
-        <EntitySet Name="Employees" EntityType="Hackathon2020.Poc01.Models.Employee">
-          <NavigationPropertyBinding Path="Manager" Target="Employees"/>
-          <NavigationPropertyBinding Path="Reports" Target="Employees"/>
-        </EntitySet>
-        <EntitySet Name="Projects" EntityType="Hackathon2020.Poc01.Models.Project">
-          <NavigationPropertyBinding Path="Manager" Target="Employees"/>
-        </EntitySet>
-        <EntitySet Name="Products" EntityType="Hackathon2020.Poc01.Models.Product" />
-        <EntitySet Name="Suppliers" EntityType="Hackathon2020.Poc01.Models.Supplier" />
-        <EntitySet Name="Customers" EntityType="Hackathon2020.Poc01.Models.Customer" />
-      </EntityContainer>
+      <Function Name="delta" IsBound="true">
+        <Parameter Name="bindingParameter" Type="Collection(microsoft.toDo.todoTaskList)" />
+        <ReturnType Type="Collection(microsoft.toDo.todoTaskList)" />
+      </Function>
     </Schema>
   </edmx:DataServices>
 </edmx:Edmx>
