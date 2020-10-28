@@ -2,8 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data.Entity;
-    using System.Data.Entity.Infrastructure;
+   // using Microsoft.EntityFrameworkCore;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -14,6 +13,7 @@
     using Microsoft.OData.Edm;
     using Microsoft.OData.Edm.Csdl;
     using Microsoft.OData.Edm.Validation;
+    using System.Data.Entity;
 
     [Serializable]
     public class DbContextGenerator
@@ -109,14 +109,14 @@
             while (_builderQueue.Count != 0)
             {
                 var typeBuilder = _builderQueue.Dequeue();
-                if (typeBuilder.Builder is TypeBuilder)
+                if ((object)typeBuilder.Builder is TypeBuilder)
                 {
-                    ((TypeBuilder)typeBuilder.Builder).CreateType();
+                    ((TypeBuilder)(object)typeBuilder.Builder).CreateTypeInfo();
 
                 }
-                if (typeBuilder.Builder is EnumBuilder)
+                if ((object)typeBuilder.Builder is EnumBuilder)
                 {
-                    ((EnumBuilder)typeBuilder.Builder).CreateType();
+                    ((EnumBuilder)(object)typeBuilder.Builder).CreateTypeInfo();
 
                 }
             }
@@ -157,7 +157,8 @@
         {
             if (_typeBuildersDict.ContainsKey(moduleName))
             {
-                return (TypeBuilder)_typeBuildersDict[moduleName].Builder;
+                Type myTypeInfo = _typeBuildersDict[moduleName].Builder.AsType();
+                return (TypeBuilder)myTypeInfo;
             }
             if (targetType.BaseType != null)
             {
@@ -168,7 +169,7 @@
                 }
 
                 var typeBuilder = moduleBuilder.DefineType(moduleName, TypeAttributes.Class | TypeAttributes.Public, previouslyBuiltType);
-                var typeBuilderInfo = new TypeBuilderInfo() {Builder = typeBuilder, IsDerived = true};
+                var typeBuilderInfo = new TypeBuilderInfo() {Builder = typeBuilder.GetTypeInfo(), IsDerived = true};
                 _typeBuildersDict.Add(moduleName, typeBuilderInfo);
                 _builderQueue.Enqueue(typeBuilderInfo);
                 return typeBuilder;
@@ -177,7 +178,7 @@
             else
             {
                 var typeBuilder = moduleBuilder.DefineType(moduleName, TypeAttributes.Class | TypeAttributes.Public);
-                var builderInfo = new TypeBuilderInfo() {Builder = typeBuilder, IsDerived = false};
+                var builderInfo = new TypeBuilderInfo() {Builder = typeBuilder.GetTypeInfo(), IsDerived = false};
                 _typeBuildersDict.Add(moduleName, builderInfo);
                 _builderQueue.Enqueue(builderInfo);
 
@@ -223,7 +224,7 @@
             }
             else
             {
-                typeBuilder = (TypeBuilder)_typeBuildersDict[moduleName].Builder;
+                typeBuilder = (TypeBuilder)(object)_typeBuildersDict[moduleName].Builder;
                 foreach (var property in type.DeclaredProperties)
                 {
                     if (property.PropertyKind == EdmPropertyKind.Navigation)
@@ -236,11 +237,11 @@
         {
             if (_typeBuildersDict.ContainsKey(moduleName))
             {
-                return (EnumBuilder)_typeBuildersDict[moduleName].Builder;
+                return (EnumBuilder)(object)_typeBuildersDict[moduleName].Builder.AsType();
             }
 
             EnumBuilder typeBuilder = moduleBuilder.DefineEnum(moduleName, TypeAttributes.Public, typeof(int));
-            var builderInfo = new TypeBuilderInfo() {Builder = typeBuilder, IsDerived = false};
+            var builderInfo = new TypeBuilderInfo() {Builder = typeBuilder.GetTypeInfo(), IsDerived = false};
             _typeBuildersDict.Add(moduleName, builderInfo);
             _builderQueue.Enqueue(builderInfo);
             return typeBuilder;
@@ -401,7 +402,7 @@
                 // Build Assembly
                 AssemblyName assembly_Name = new AssemblyName(assemblyName);
                 //AssemblyBuilder assemblyBuilder = appDomain.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.RunAndSave);
-                AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.Run);
+                AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.RunAndCollect);
                 ModuleBuilder module = assemblyBuilder.DefineDynamicModule($"{assembly_Name.Name}");
                 BuildModules(model, module, dbContextName);
                 //assemblyBuilder.Save($"{assembly_Name.Name}.dll");
