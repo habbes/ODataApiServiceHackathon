@@ -20,6 +20,7 @@ namespace Hackathon2020.Poc01.Controllers
             return _db.Set<TEntity>();
         }
 
+        [EnableQuery]
         public ActionResult Get([FromODataUri] int key)
         {
             var entity = _db.Set<TEntity>().Find(key);
@@ -93,6 +94,14 @@ namespace Hackathon2020.Poc01.Controllers
             _db.SaveChanges();
 
             return Ok(update);
+        }
+
+        [EnableQuery]
+        public IActionResult GetNavigationProperty([FromODataUri] int key, string navigationProperty)
+        {
+            var entity = _db.Set<TEntity>().Find(key);
+            var relatedEntity = entity.GetType().GetProperty(navigationProperty).GetValue(entity);
+            return Ok(relatedEntity);
         }
     }
 }
