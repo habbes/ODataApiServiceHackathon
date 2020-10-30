@@ -1,5 +1,6 @@
 ﻿namespace EdmObjectsGenerator
 {
+    using Microsoft.EntityFrameworkCore;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -67,7 +68,8 @@
 
         public static void CreateDefaultConstructor(this TypeBuilder builder, Type baseType, string paramValue)
         {
-            var constructor = baseType.GetConstructor(new Type[] { typeof(string) });
+            var constructor = baseType.GetConstructor(new Type[] {typeof(string) });
+            //var constructor = baseType.GetConstructors().FirstOrDefault();
             var ctor = builder.DefineConstructor(MethodAttributes.Public, constructor.CallingConvention, new Type[] { });
 
             var emitter = ctor.GetILGenerator();
@@ -84,6 +86,8 @@
         public static void CreateConnectionStringConstructor(this TypeBuilder builder, Type baseType)
         {
             var constructor = baseType.GetConstructor(new Type[] { typeof(string) });
+            //var constructor = baseType.GetConstructor(new Type[] { });
+            //var constructor = baseType.GetConstructors().FirstOrDefault();
             var ctor = builder.DefineConstructor(MethodAttributes.Public, constructor.CallingConvention, new Type[] { typeof(string) });
 
             var emitter = ctor.GetILGenerator();

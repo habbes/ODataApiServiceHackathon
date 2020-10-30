@@ -14,11 +14,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OData.Edm;
 using Microsoft.OData.Edm.Csdl;
 using System;
-using System.Collections.Generic;
 using System.Data.Entity;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using System.IO;
+using System.Reflection;
 
 namespace Hackathon2020.Poc01
 {
@@ -36,8 +37,11 @@ namespace Hackathon2020.Poc01
             DbContextGenerator generator = new DbContextGenerator();
             var contextType = generator.GenerateDbContext(DbContextConstants.CsdlFile, DbContextConstants.Name);
 
+
             var connectionString = File.ReadAllText(DbContextConstants.ConnectionStringFile).Trim();
-            DbContext dbContext = Activator.CreateInstance(contextType, new object[] { connectionString }) as DbContext;
+
+            DbContext dbContext = (DbContext)Activator.CreateInstance(contextType, new string[] { connectionString });
+         
             dbContext.Database.CreateIfNotExists();
 
             services.AddSingleton(this.Configuration);
