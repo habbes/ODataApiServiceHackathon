@@ -46,6 +46,7 @@
         <NavigationProperty Name="Manager" Type="Hackathon2020.Poc01.Models.Employee">
           <ReferentialConstraint Property="ManagerId" ReferencedProperty="Id"/>
         </NavigationProperty>
+        <NavigationProperty Name="Reports" Type="Collection(Hackathon2020.Poc01.Models.Employee)"/>
         <NavigationProperty Name="Tasks" Type="Collection(Hackathon2020.Poc01.Models.Task)"/>
       </EntityType>
       <EntityType Name="Project">
