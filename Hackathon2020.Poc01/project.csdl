@@ -1,4 +1,4 @@
-﻿<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
+<edmx:Edmx xmlns:edmx="http://docs.oasis-open.org/odata/ns/edmx" Version="4.0">
   <edmx:DataServices>
     <Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Hackathon2020.Poc01.Models">
       <EntityType Name="Task">
@@ -46,7 +46,6 @@
         <NavigationProperty Name="Manager" Type="Hackathon2020.Poc01.Models.Employee">
           <ReferentialConstraint Property="ManagerId" ReferencedProperty="Id"/>
         </NavigationProperty>
-        <NavigationProperty Name="Reports" Type="Collection(Hackathon2020.Poc01.Models.Employee)"/>
         <NavigationProperty Name="Tasks" Type="Collection(Hackathon2020.Poc01.Models.Task)"/>
       </EntityType>
       <EntityType Name="Project">
