@@ -14,6 +14,7 @@
     using Microsoft.OData.Edm.Csdl;
     using Microsoft.OData.Edm.Validation;
     using System.Data.Entity;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     [Serializable]
     public class DbContextGenerator
@@ -169,6 +170,13 @@
                 }
 
                 var typeBuilder = moduleBuilder.DefineType(moduleName, TypeAttributes.Class | TypeAttributes.Public, previouslyBuiltType);
+                // Add [ComplexType] attribute to complex types
+                if (targetType.TypeKind == EdmTypeKind.Complex)
+                {
+                    var complexAttrBuilder = new CustomAttributeBuilder(typeof(ComplexTypeAttribute).GetConstructor(Type.EmptyTypes), Array.Empty<object>());
+                    typeBuilder.SetCustomAttribute(complexAttrBuilder);
+                }
+
                 var typeBuilderInfo = new TypeBuilderInfo() {Builder = typeBuilder.GetTypeInfo(), IsDerived = true};
                 _typeBuildersDict.Add(moduleName, typeBuilderInfo);
                 _builderQueue.Enqueue(typeBuilderInfo);
@@ -178,6 +186,13 @@
             else
             {
                 var typeBuilder = moduleBuilder.DefineType(moduleName, TypeAttributes.Class | TypeAttributes.Public);
+                // Add [ComplexType] attribute to complex types
+                if (targetType.TypeKind == EdmTypeKind.Complex)
+                {
+                    var complexAttrBuilder = new CustomAttributeBuilder(typeof(ComplexTypeAttribute).GetConstructor(Type.EmptyTypes), Array.Empty<object>());
+                    typeBuilder.SetCustomAttribute(complexAttrBuilder);
+                }
+
                 var builderInfo = new TypeBuilderInfo() {Builder = typeBuilder.GetTypeInfo(), IsDerived = false};
                 _typeBuildersDict.Add(moduleName, builderInfo);
                 _builderQueue.Enqueue(builderInfo);
