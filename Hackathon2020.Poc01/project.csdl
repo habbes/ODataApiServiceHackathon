@@ -95,9 +95,9 @@
           </Annotation>
         </Property>
         <Property Name="ConfirmationCode" Type="Edm.String" />
-        <Property Name="StartsAt" Type="Edm.DateTimeOffset" />
-        <Property Name="EndsAt" Type="Edm.DateTimeOffset" />
-        <Property Name="Duration" Type="Edm.Duration" />
+        <!-- <Property Name="StartsAt" Type="Edm.DateTimeOffset" />
+        <Property Name="EndsAt" Type="Edm.DateTimeOffset" /> -->
+        <!-- <Property Name="Duration" Type="Edm.Duration" /> -->
       </EntityType>
       <EntityType Name="PublicTransportation" BaseType="Microsoft.OData.SampleService.Models.TripPin.PlanItem">
         <Property Name="SeatNumber" Type="Edm.String" />
@@ -128,8 +128,8 @@
           <Annotation Term="Org.OData.Measures.V1.ISOCurrency" String="USD" />
           <Annotation Term="Org.OData.Measures.V1.Scale" Int="2" />
         </Property>
-        <Property Name="StartsAt" Type="Edm.DateTimeOffset" Nullable="false" />
-        <Property Name="EndsAt" Type="Edm.DateTimeOffset" Nullable="false" />
+        <!-- <Property Name="StartsAt" Type="Edm.DateTimeOffset" Nullable="false" />
+        <Property Name="EndsAt" Type="Edm.DateTimeOffset" Nullable="false" /> -->
         <Property Name="Tags" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="Photos" Type="Collection(Microsoft.OData.SampleService.Models.TripPin.Photo)" />
         <NavigationProperty Name="PlanItems" Type="Collection(Microsoft.OData.SampleService.Models.TripPin.PlanItem)" ContainsTarget="true" />
