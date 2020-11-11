@@ -2,19 +2,17 @@
 {
     using System;
     using System.Collections.Generic;
-   // using Microsoft.EntityFrameworkCore;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Text.RegularExpressions;
-    using System.Threading;
     using System.Xml;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.OData.Edm;
     using Microsoft.OData.Edm.Csdl;
     using Microsoft.OData.Edm.Validation;
-    using System.Data.Entity;
-    using System.ComponentModel.DataAnnotations.Schema;
 
     [Serializable]
     public class DbContextGenerator
@@ -126,8 +124,9 @@
             //generate the DbContext type
             var entitiesBuilder = moduleBuilder.DefineType(dbContextName, TypeAttributes.Class | TypeAttributes.Public, typeof(DbContext));
             var dbContextType = typeof(DbContext);
-            entitiesBuilder.CreateDefaultConstructor(dbContextType, $"name={dbContextName}");
-            entitiesBuilder.CreateConnectionStringConstructor(dbContextType);
+            //entitiesBuilder.CreateDefaultConstructor(dbContextType, $"name={dbContextName}");
+            //entitiesBuilder.CreateConnectionStringConstructor(dbContextType);
+            entitiesBuilder.CreateContextOptionsConstructor(dbContextType);
 
             foreach (var entitySet in model.EntityContainer.EntitySets())
             {
@@ -140,17 +139,17 @@
                 }
             }
 
-            // create the OnModelCreating method
-            MethodBuilder methodbuilder = entitiesBuilder.DefineMethod("OnModelCreating", MethodAttributes.Public
-                                                                                          | MethodAttributes.HideBySig
-                                                                                          | MethodAttributes.CheckAccessOnOverride
-                                                                                          | MethodAttributes.Virtual,
-                                                                                          typeof(void), new Type[] { typeof(DbModelBuilder) });
+//            // create the OnModelCreating method
+//            MethodBuilder methodbuilder = entitiesBuilder.DefineMethod("OnModelCreating", MethodAttributes.Public
+//                                                                                          | MethodAttributes.HideBySig
+//                                                                                          | MethodAttributes.CheckAccessOnOverride
+//                                                                                          | MethodAttributes.Virtual,
+//                                                                                          typeof(void), new Type[] { typeof(DbModelBuilder) });
 
-            // generate the IL for the OnModelCreating method
-            ILGenerator ilGenerator = methodbuilder.GetILGenerator();
-//todo: insert code
-            ilGenerator.Emit(OpCodes.Ret);
+//            // generate the IL for the OnModelCreating method
+//            ILGenerator ilGenerator = methodbuilder.GetILGenerator();
+////todo: insert code
+//            ilGenerator.Emit(OpCodes.Ret);
             entitiesBuilder.CreateType();
         }
 
