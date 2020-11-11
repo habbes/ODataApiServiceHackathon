@@ -15,32 +15,25 @@ namespace Hackathon2020.Poc01.Controllers
     {
         private readonly DbContext _db;
 
+        private Microsoft.AspNet.OData.Routing.ODataPath ODataPath { get => HttpContext.ODataFeature().Path; }
+
         public DynamicControllerBase(DbContext db)
         {
             _db = db;
         }
 
-        [EnableQuery]
-        public IQueryable<TEntity> Get()
+        public ActionResult Delete()
         {
-            return _db.Set<TEntity>();
-        }
+            var segments = ODataPath.Segments;
 
-        [EnableQuery]
-        public ActionResult Get([FromODataUri] int key)
-        {
-            var entity = _db.Set<TEntity>().Find(key);
-            if (entity == null)
+            // only support patch /entitySet/key, we don't support nested paths at this time
+            var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
+            if (keySegment == null)
             {
                 return NotFound();
             }
 
-            return Ok(entity);
-        }
-
-        public ActionResult Delete([FromODataUri] int key)
-        {
-            var entity = _db.Set<TEntity>().Find(key);
+            var entity = _db.Set<TEntity>().Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
             if (entity == null)
             {
                 return NotFound();
@@ -63,14 +56,25 @@ namespace Hackathon2020.Poc01.Controllers
             return Ok(added);
         }
 
-        public ActionResult Patch([FromODataUri] int key, Delta<TEntity> patch)
+        public ActionResult Patch(Delta<TEntity> patch)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _db.Set<TEntity>().Find(key);
+            var segments = ODataPath.Segments;
+            
+            // only support patch /entitySet/key, we don't support nested paths at this time
+            var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
+            if (keySegment == null)
+            {
+                return NotFound();
+            }
+
+            var dbSet = _db.Set<TEntity>();
+            var entity = dbSet.Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
+
             if (entity == null)
             {
                 return NotFound();
@@ -82,14 +86,21 @@ namespace Hackathon2020.Poc01.Controllers
             return Ok(entity);
         }
 
-        public ActionResult Put([FromODataUri] int key, TEntity update)
+        public ActionResult Put(TEntity update)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var entity = _db.Set<TEntity>().Find(key);
+            var segments = ODataPath.Segments;
+            var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
+            if (keySegment == null)
+            {
+                return NotFound();
+            }
+
+            var entity = _db.Set<TEntity>().Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
             if (entity == null)
             {
                 return NotFound();
@@ -103,9 +114,16 @@ namespace Hackathon2020.Poc01.Controllers
         }
 
         [EnableQuery]
-        public IActionResult GetNavigationProperty([FromODataUri] int key, string navigationProperty)
+        public IActionResult GetNavigationProperty(string navigationProperty)
         {
-            var entity = _db.Set<TEntity>().Find(key);
+            var segments = ODataPath.Segments;
+            var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
+            if (keySegment == null)
+            {
+                return NotFound();
+            }
+
+            var entity = _db.Set<TEntity>().Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
             if (entity == null)
             {
                 return NotFound();
@@ -115,8 +133,12 @@ namespace Hackathon2020.Poc01.Controllers
             return Ok(relatedEntity);
         }
 
+        /// <summary>
+        /// This handles different types Get requests: i.e. /entityset, /entityset/key, /entityset/key/navigation /entityset/key/navigation/key
+        /// </summary>
+        /// <returns></returns>
         [EnableQuery]
-        public IActionResult GetDeeplyNestedNavigationProperty()
+        public IActionResult Get()
         {
             
             var odataFeature = HttpContext.ODataFeature();
@@ -138,7 +160,7 @@ namespace Hackathon2020.Poc01.Controllers
             // current starts off as a DbQuery<T>
             // tell DB which nested properties to Include/Join in the query, e.g. Orders.OrderDetails
             // TODO: maybe we should avoid eager-loading for perf?
-            object current = dbSet.Include(pathToInclude);
+            object current = string.IsNullOrEmpty(pathToInclude) ? dbSet : dbSet.Include(pathToInclude);
 
             foreach (var segment in segments)
             {
