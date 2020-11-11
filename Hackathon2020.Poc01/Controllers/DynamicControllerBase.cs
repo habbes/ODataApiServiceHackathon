@@ -53,7 +53,7 @@ namespace Hackathon2020.Poc01.Controllers
 
             var added = _db.Set<TEntity>().Add(data);
             _db.SaveChanges();
-            return Ok(added);
+            return Ok(added.Entity);
         }
 
         public ActionResult Patch(Delta<TEntity> patch)
@@ -86,7 +86,7 @@ namespace Hackathon2020.Poc01.Controllers
             return Ok(entity);
         }
 
-        public ActionResult Put(TEntity update)
+        public ActionResult Put(Delta<TEntity> update)
         {
             if (!ModelState.IsValid)
             {
@@ -106,11 +106,30 @@ namespace Hackathon2020.Poc01.Controllers
                 return NotFound();
             }
 
-            _db.Entry(update).State = EntityState.Modified;
+            update.Put(entity);
 
-            _db.SaveChanges();
+            // ensure the key in the url matches the key in the payload
+            var type = typeof(TEntity);
+            foreach (var kvp in keySegment.Keys)
+            {
+                type.GetProperty(kvp.Key).SetValue(entity, kvp.Value);
+            }
 
-            return Ok(update);
+            try
+            {
+                var updated = _db.Update(entity);
+                _db.SaveChanges();
+                return Ok(updated.Entity);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                if (ex.Message.Contains("not exist"))
+                {
+                    return NotFound();
+                }
+
+                throw ex;
+            }   
         }
 
         [EnableQuery]
