@@ -1,7 +1,6 @@
 using EdmObjectsGenerator;
 using Hackathon2020.Poc01.Data;
 using Hackathon2020.Poc01.Lib;
-using Microsoft.AspNet.OData.Builder;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNet.OData.Routing.Conventions;
@@ -18,9 +17,11 @@ using System.Data.Entity;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using System.IO;
-using System.Reflection;
 using Microsoft.AspNetCore.OData.Routing.Conventions;
+using System.Data.Entity.Core.Common;
+using System.Data.SQLite.EF6;
+using System.Data.Common;
+using System.Data.SQLite;
 
 namespace Hackathon2020.Poc01
 {
@@ -29,19 +30,38 @@ namespace Hackathon2020.Poc01
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            
+            DbConfiguration.Loaded += (_, a) =>
+            {
+                a.ReplaceService<DbProviderServices>((s, k) =>
+                {
+
+                    return (DbProviderServices)SQLiteProviderFactory.Instance.GetService(typeof(DbProviderServices));
+                });
+                a.ReplaceService<DbProviderFactory>((s, k) =>
+                {
+                    return SQLiteProviderFactory.Instance;
+                });
+            };
+
+            DbConfiguration.SetConfiguration(new SQLiteConfiguration());
         }
 
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
+            
+
             DbContextGenerator generator = new DbContextGenerator();
             var contextType = generator.GenerateDbContext(DbContextConstants.CsdlFile, DbContextConstants.Name);
 
+            //DbConfiguration.SetConfiguration(new SQLiteConfiguration());
 
-            var connectionString = File.ReadAllText(DbContextConstants.ConnectionStringFile).Trim();
+            //var connectionString = File.ReadAllText(DbContextConstants.ConnectionStringFile).Trim();
+            var sqliteInMemoryConnectionString = "Data Source=:memory:;Version=3;New=True;";
 
-            DbContext dbContext = (DbContext)Activator.CreateInstance(contextType, new string[] { connectionString });
+            DbContext dbContext = (DbContext)Activator.CreateInstance(contextType, new string[] { sqliteInMemoryConnectionString });
          
             dbContext.Database.CreateIfNotExists();
 
@@ -98,4 +118,6 @@ namespace Hackathon2020.Poc01
             return instance;
         }
     }
+
+    
 }

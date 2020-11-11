@@ -125,6 +125,15 @@
 
             //generate the DbContext type
             var entitiesBuilder = moduleBuilder.DefineType(dbContextName, TypeAttributes.Class | TypeAttributes.Public, typeof(DbContext));
+
+            // add SQLite configuration to db using the [DbConfigurationType] attribute
+            // see: https://docs.microsoft.com/en-us/ef/ef6/fundamentals/providers/
+            // see: https://docs.microsoft.com/en-us/ef/ef6/fundamentals/configuring/code-based
+            //var configAttrBuilder = new CustomAttributeBuilder(
+            //    typeof(DbConfigurationTypeAttribute).GetConstructor(new[] { typeof(string) }), new[] { typeof(SQLiteConfiguration).AssemblyQualifiedName });
+            //entitiesBuilder.SetCustomAttribute(configAttrBuilder);
+            
+            
             var dbContextType = typeof(DbContext);
             entitiesBuilder.CreateDefaultConstructor(dbContextType, $"name={dbContextName}");
             entitiesBuilder.CreateConnectionStringConstructor(dbContextType);
