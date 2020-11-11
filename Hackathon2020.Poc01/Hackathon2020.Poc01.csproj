@@ -13,6 +13,7 @@
     <None Remove="connectionstring.txt" />
     <None Remove="Project.csdl" />
     <None Remove="Simple.csdl" />
+    <None Remove="Trippin.csdl" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,6 +24,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Simple.csdl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Trippin.csdl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
