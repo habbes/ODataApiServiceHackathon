@@ -101,6 +101,24 @@
             emitter.Emit(OpCodes.Ret);
         }
 
+        public static void CreateContextOptionsConstructor(this TypeBuilder builder, Type baseType)
+        {
+            var optionsType = typeof(DbContextOptions);
+            var baseCtor = baseType.GetConstructor(new Type[] { optionsType });
+
+            var ctor = builder.DefineConstructor(MethodAttributes.Public, baseCtor.CallingConvention, new Type[] { optionsType });
+
+            var emitter = ctor.GetILGenerator();
+            emitter.Emit(OpCodes.Nop);
+
+            // Load `this` and call base constructor with DbContextOptions arg passed to this constructor
+            emitter.Emit(OpCodes.Ldarg_0);
+            emitter.Emit(OpCodes.Ldarg_1);
+            emitter.Emit(OpCodes.Call, baseCtor);
+
+            emitter.Emit(OpCodes.Ret);
+        }
+
         private static CustomAttributeBuilder[] BuildCustomAttributes(IEnumerable<CustomAttributeData> customAttributes)
         {
             return customAttributes.Select(attribute => {

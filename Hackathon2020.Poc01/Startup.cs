@@ -2,6 +2,7 @@ using EdmObjectsGenerator;
 using Hackathon2020.Poc01.Data;
 using Hackathon2020.Poc01.Lib;
 using Microsoft.AspNet.OData.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNet.OData.Extensions;
 using Microsoft.AspNet.OData.Routing;
 using Microsoft.AspNet.OData.Routing.Conventions;
@@ -14,7 +15,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OData.Edm;
 using Microsoft.OData.Edm.Csdl;
 using System;
-using System.Data.Entity;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
@@ -41,9 +41,12 @@ namespace Hackathon2020.Poc01
 
             var connectionString = File.ReadAllText(DbContextConstants.ConnectionStringFile).Trim();
 
-            DbContext dbContext = (DbContext)Activator.CreateInstance(contextType, new string[] { connectionString });
+            var optionsBuilder = new DbContextOptionsBuilder();
+            var dbContextOptions = optionsBuilder.UseInMemoryDatabase("RapidApiDB").Options;
+
+            DbContext dbContext = (DbContext)Activator.CreateInstance(contextType, new object[] { dbContextOptions });
          
-            dbContext.Database.CreateIfNotExists();
+            //dbContext.Database.CreateIfNotExists();
 
             services.AddSingleton(this.Configuration);
             services.AddSingleton(typeof(DbContext), dbContext);
