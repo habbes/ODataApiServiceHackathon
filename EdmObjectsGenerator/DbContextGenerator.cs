@@ -2,18 +2,17 @@
 {
     using System;
     using System.Collections.Generic;
-   // using Microsoft.EntityFrameworkCore;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Text.RegularExpressions;
-    using System.Threading;
     using System.Xml;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.OData.Edm;
     using Microsoft.OData.Edm.Csdl;
     using Microsoft.OData.Edm.Validation;
-    using System.Data.Entity;
 
     [Serializable]
     public class DbContextGenerator
@@ -125,8 +124,9 @@
             //generate the DbContext type
             var entitiesBuilder = moduleBuilder.DefineType(dbContextName, TypeAttributes.Class | TypeAttributes.Public, typeof(DbContext));
             var dbContextType = typeof(DbContext);
-            entitiesBuilder.CreateDefaultConstructor(dbContextType, $"name={dbContextName}");
-            entitiesBuilder.CreateConnectionStringConstructor(dbContextType);
+            //entitiesBuilder.CreateDefaultConstructor(dbContextType, $"name={dbContextName}");
+            //entitiesBuilder.CreateConnectionStringConstructor(dbContextType);
+            entitiesBuilder.CreateContextOptionsConstructor(dbContextType);
 
             foreach (var entitySet in model.EntityContainer.EntitySets())
             {
@@ -139,17 +139,17 @@
                 }
             }
 
-            // create the OnModelCreating method
-            MethodBuilder methodbuilder = entitiesBuilder.DefineMethod("OnModelCreating", MethodAttributes.Public
-                                                                                          | MethodAttributes.HideBySig
-                                                                                          | MethodAttributes.CheckAccessOnOverride
-                                                                                          | MethodAttributes.Virtual,
-                                                                                          typeof(void), new Type[] { typeof(DbModelBuilder) });
+//            // create the OnModelCreating method
+//            MethodBuilder methodbuilder = entitiesBuilder.DefineMethod("OnModelCreating", MethodAttributes.Public
+//                                                                                          | MethodAttributes.HideBySig
+//                                                                                          | MethodAttributes.CheckAccessOnOverride
+//                                                                                          | MethodAttributes.Virtual,
+//                                                                                          typeof(void), new Type[] { typeof(DbModelBuilder) });
 
-            // generate the IL for the OnModelCreating method
-            ILGenerator ilGenerator = methodbuilder.GetILGenerator();
-//todo: insert code
-            ilGenerator.Emit(OpCodes.Ret);
+//            // generate the IL for the OnModelCreating method
+//            ILGenerator ilGenerator = methodbuilder.GetILGenerator();
+////todo: insert code
+//            ilGenerator.Emit(OpCodes.Ret);
             entitiesBuilder.CreateType();
         }
 
@@ -169,6 +169,13 @@
                 }
 
                 var typeBuilder = moduleBuilder.DefineType(moduleName, TypeAttributes.Class | TypeAttributes.Public, previouslyBuiltType);
+                // Add [ComplexType] attribute to complex types
+                if (targetType.TypeKind == EdmTypeKind.Complex)
+                {
+                    var complexAttrBuilder = new CustomAttributeBuilder(typeof(ComplexTypeAttribute).GetConstructor(Type.EmptyTypes), Array.Empty<object>());
+                    typeBuilder.SetCustomAttribute(complexAttrBuilder);
+                }
+
                 var typeBuilderInfo = new TypeBuilderInfo() {Builder = typeBuilder.GetTypeInfo(), IsDerived = true};
                 _typeBuildersDict.Add(moduleName, typeBuilderInfo);
                 _builderQueue.Enqueue(typeBuilderInfo);
@@ -178,6 +185,13 @@
             else
             {
                 var typeBuilder = moduleBuilder.DefineType(moduleName, TypeAttributes.Class | TypeAttributes.Public);
+                // Add [ComplexType] attribute to complex types
+                if (targetType.TypeKind == EdmTypeKind.Complex)
+                {
+                    var complexAttrBuilder = new CustomAttributeBuilder(typeof(ComplexTypeAttribute).GetConstructor(Type.EmptyTypes), Array.Empty<object>());
+                    typeBuilder.SetCustomAttribute(complexAttrBuilder);
+                }
+
                 var builderInfo = new TypeBuilderInfo() {Builder = typeBuilder.GetTypeInfo(), IsDerived = false};
                 _typeBuildersDict.Add(moduleName, builderInfo);
                 _builderQueue.Enqueue(builderInfo);
