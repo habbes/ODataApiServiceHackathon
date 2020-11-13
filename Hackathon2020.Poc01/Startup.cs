@@ -21,6 +21,7 @@ using System.Xml;
 using System.IO;
 using System.Reflection;
 using Microsoft.AspNetCore.OData.Routing.Conventions;
+using Azure.Storage.Files.Shares;
 
 namespace Hackathon2020.Poc01
 {
@@ -35,6 +36,19 @@ namespace Hackathon2020.Poc01
 
         public void ConfigureServices(IServiceCollection services)
         {
+            if (Environment.GetEnvironmentVariable("IS_REMOTE_ENV") == "true")
+            {
+                var azureStorageConnString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+                var azureFileShareName = Environment.GetEnvironmentVariable("AZURE_FILE_SHARE_NAME");
+                var shareClient = new ShareClient(azureStorageConnString, azureFileShareName);
+                var dirClient = shareClient.GetDirectoryClient("schema");
+                var fileClient = dirClient.GetFileClient("Project.csdl");
+                var downloadResponse = fileClient.Download();
+                var stream = downloadResponse.Value.Content;
+                var reader = new StreamReader(stream);
+                File.WriteAllText(DbContextConstants.CsdlFile, reader.ReadToEnd());
+            }
+
             DbContextGenerator generator = new DbContextGenerator();
             var contextType = generator.GenerateDbContext(DbContextConstants.CsdlFile, DbContextConstants.Name);
 
