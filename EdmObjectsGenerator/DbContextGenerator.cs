@@ -174,6 +174,8 @@
                 {
                     var complexAttrBuilder = new CustomAttributeBuilder(typeof(ComplexTypeAttribute).GetConstructor(Type.EmptyTypes), Array.Empty<object>());
                     typeBuilder.SetCustomAttribute(complexAttrBuilder);
+                    var ownedAttrBuilder = new CustomAttributeBuilder(typeof(OwnedAttribute).GetConstructor(Type.EmptyTypes), Array.Empty<object>());
+                    typeBuilder.SetCustomAttribute(ownedAttrBuilder);
                 }
 
                 var typeBuilderInfo = new TypeBuilderInfo() {Builder = typeBuilder.GetTypeInfo(), IsDerived = true};
@@ -190,6 +192,8 @@
                 {
                     var complexAttrBuilder = new CustomAttributeBuilder(typeof(ComplexTypeAttribute).GetConstructor(Type.EmptyTypes), Array.Empty<object>());
                     typeBuilder.SetCustomAttribute(complexAttrBuilder);
+                    var ownedAttrBuilder = new CustomAttributeBuilder(typeof(OwnedAttribute).GetConstructor(Type.EmptyTypes), Array.Empty<object>());
+                    typeBuilder.SetCustomAttribute(ownedAttrBuilder);
                 }
 
                 var builderInfo = new TypeBuilderInfo() {Builder = typeBuilder.GetTypeInfo(), IsDerived = false};

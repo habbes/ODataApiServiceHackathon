@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Microsoft.AspNet.OData.Routing;
 
 namespace Hackathon2020.Poc01.Controllers
 {
@@ -132,6 +133,109 @@ namespace Hackathon2020.Poc01.Controllers
             }   
         }
 
+        public IActionResult CreateRef([FromBody] Uri link)
+        {
+            var odataFeature = HttpContext.ODataFeature();
+            var requestContainer = odataFeature.RequestContainer;
+            var urlHelper = odataFeature.UrlHelper;
+            var pathHandler = (IODataPathHandler)requestContainer.GetService(typeof(IODataPathHandler));
+
+
+            var segments = ODataPath.Segments;
+            var keySegment = segments.OfType<KeySegment>().First();
+            var navLinkSegment = segments.OfType<NavigationPropertyLinkSegment>().First();
+            var dbSet = _db.Set<TEntity>().Include(navLinkSegment.NavigationProperty.Name);
+            var entityType = typeof(TEntity);
+
+            var navProperty = entityType.GetProperty(navLinkSegment.NavigationProperty.Name);
+            var isList = typeof(IList<>).MakeGenericType(navProperty.PropertyType.GetGenericArguments()).IsAssignableFrom(navProperty.PropertyType);
+
+            var relatedType = isList ? navProperty.PropertyType.GetGenericArguments()[0] : navProperty.PropertyType;
+
+            var entity = GetEntityByKey(dbSet, keySegment);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            var dbSetMethod = typeof(DbContext).GetMethod("Set").MakeGenericMethod(relatedType);
+            var relatedDbSet = dbSetMethod.Invoke(_db, Array.Empty<object>());
+
+            
+            // extract link from url
+            // request body looks like { "@odata.id": "http://serviceroot/People(1)" }
+            string serviceRoot = urlHelper.CreateODataLink();
+            var linkOdataPath = pathHandler.Parse(serviceRoot, link.AbsoluteUri, requestContainer);
+            var relatedKeySegment = linkOdataPath.Segments.OfType<KeySegment>().First();
+            var relatedEntity = GetEntityByKey(relatedDbSet, relatedKeySegment);
+            if (relatedEntity == null)
+            {
+                return null;
+            }
+
+            if (isList)
+            {
+                // entity.NavProp.Add(relatedEntity)
+                var relatedEntitiesList = navProperty.GetValue(entity);
+                navProperty.PropertyType.GetMethod("Add").Invoke(relatedEntitiesList, new[] { relatedEntity });
+            }
+            else
+            {
+                // entity.NavProp = relatedEntity
+                navProperty.SetValue(entity, relatedEntity);
+            }
+
+            _db.SaveChanges();
+            
+            return Ok();
+        }
+
+        public IActionResult DeleteRef()
+        {
+            var segments = ODataPath.Segments;
+            var keySegment = segments.OfType<KeySegment>().First();
+
+            var navLinkSegment = segments.OfType<NavigationPropertyLinkSegment>().First();
+            var dbSet = _db.Set<TEntity>().Include(navLinkSegment.NavigationProperty.Name);
+            var entityType = typeof(TEntity);
+
+            var navProperty = entityType.GetProperty(navLinkSegment.NavigationProperty.Name);
+            var isList = typeof(IList<>)
+                .MakeGenericType(navProperty.PropertyType.GetGenericArguments())
+                .IsAssignableFrom(navProperty.PropertyType);
+
+            var entity = GetEntityByKey(dbSet, keySegment);
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
+            if (isList)
+            {
+                // entity.NavProp.Remove(relatedEntity);
+                var relatedKeySegment = segments.OfType<KeySegment>().Last();
+                var relatedEntitiesList = navProperty.GetValue(entity);
+                var relatedEntity = GetEntityByKey(relatedEntitiesList, relatedKeySegment);
+                if (relatedEntity == null)
+                {
+                    return NotFound();
+                }
+
+                navProperty.PropertyType.GetMethod("Remove").Invoke(relatedEntitiesList, new[] { relatedEntity });
+            }
+            else
+            {
+                // entity.NavProp = null;
+                navProperty.SetValue(entity, null);
+            }
+
+            _db.SaveChanges();
+
+            return Ok();
+        }
+
         [EnableQuery]
         public IActionResult GetNavigationProperty(string navigationProperty)
         {
@@ -243,6 +347,49 @@ namespace Hackathon2020.Poc01.Controllers
             }
 
             return Ok(current);
+        }
+
+        private object GetEntityByKey(object querySet, KeySegment keySegment)
+        {
+            var current = querySet;
+            var queryType = current.GetType();
+
+            var entityType = queryType.GetGenericArguments().First();
+
+            // Expression<Func<TEntity, bool>>
+            var exprType = typeof(Expression<>)
+                .MakeGenericType(typeof(Func<,>)
+                .MakeGenericType(entityType, typeof(bool)));
+
+            // filterPredicate = entity => entity.Key1 == value1 && entity.Key2 == value2 ...)
+            var filterParam = Expression.Parameter(entityType, "entity");
+            var filterConditions = keySegment.Keys.Select(kvp =>
+                Expression.Equal(
+                    Expression.Property(filterParam, kvp.Key),
+                    Expression.Constant(kvp.Value)));
+            var filterBody = filterConditions.Aggregate((left, right) => Expression.AndAlso(left, right));
+            var filterPredicate = Expression.Lambda(filterBody, filterParam);
+
+            // current = dbQuery.FirstOrDefault(filterPredicate);
+            var isQueryable = (current as IQueryable) != null;
+            var queryableType = isQueryable ? typeof(Queryable) : typeof(Enumerable);
+            var filterMethod = queryableType.GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .FirstOrDefault(m => m.Name == "FirstOrDefault" && m.GetParameters().Count() == 2)
+                .MakeGenericMethod(entityType);
+
+            if (isQueryable)
+            {
+                // we're filtering the db set
+                current = filterMethod.Invoke(null, new[] { current, filterPredicate });
+            }
+            else
+            {
+                // we're filtering a collection navigation property, the values have been eager-loaded
+                // TODO: eager-loading could be bad if we have a lot of values
+                current = filterMethod.Invoke(null, new[] { current, filterPredicate.Compile() });
+            }
+
+            return current;
         }
     }
 }
