@@ -11,4 +11,8 @@
     <PackageReference Include="Microsoft.OData.Edm" Version="7.6.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DataLib\DataLib.csproj" />
+  </ItemGroup>
+
 </Project>

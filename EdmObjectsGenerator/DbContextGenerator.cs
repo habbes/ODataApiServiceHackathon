@@ -13,6 +13,7 @@
     using Microsoft.OData.Edm;
     using Microsoft.OData.Edm.Csdl;
     using Microsoft.OData.Edm.Validation;
+    using DataLib;
 
     [Serializable]
     public class DbContextGenerator
@@ -122,18 +123,23 @@
             
 
             //generate the DbContext type
-            var entitiesBuilder = moduleBuilder.DefineType(dbContextName, TypeAttributes.Class | TypeAttributes.Public, typeof(DbContext));
-            var dbContextType = typeof(DbContext);
-            //entitiesBuilder.CreateDefaultConstructor(dbContextType, $"name={dbContextName}");
-            //entitiesBuilder.CreateConnectionStringConstructor(dbContextType);
-            entitiesBuilder.CreateContextOptionsConstructor(dbContextType);
+            // TODO: this created an EfCore DbContext
+            //var entitiesBuilder = moduleBuilder.DefineType(dbContextName, TypeAttributes.Class | TypeAttributes.Public, typeof(DbContext));
+            //var dbContextType = typeof(DbContext);
+            ////entitiesBuilder.CreateDefaultConstructor(dbContextType, $"name={dbContextName}");
+            ////entitiesBuilder.CreateConnectionStringConstructor(dbContextType);
+            //entitiesBuilder.CreateContextOptionsConstructor(dbContextType);
+
+            var entitiesBuilder = moduleBuilder.DefineType(dbContextName, TypeAttributes.Class | TypeAttributes.Public, typeof(ListDataStore));
+            var dbContextType = typeof(ListDataStore);
 
             foreach (var entitySet in model.EntityContainer.EntitySets())
             {
                 TypeBuilderInfo entityType = _typeBuildersDict.FirstOrDefault(t => t.Key == entitySet.EntityType().FullName()).Value;
                 if (entityType != null)
                 {
-                    Type listOf = typeof(DbSet<>);
+                    //Type listOf = typeof(DbSet<>);
+                    Type listOf = typeof(ListDataSet<>);
                     Type selfContained = listOf.MakeGenericType(entityType.Builder);
                     PropertyBuilderHelper.BuildProperty(entitiesBuilder, entitySet.Name, selfContained);
                 }

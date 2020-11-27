@@ -47,6 +47,7 @@
 
   <ItemGroup>
     <!-- <ProjectReference Include="..\..\WebApi\src\Microsoft.AspNetCore.OData\Microsoft.AspNetCore.OData.csproj" /> -->
+    <ProjectReference Include="..\DataLib\DataLib.csproj" />
     <ProjectReference Include="..\EdmObjectsGenerator\EdmObjectsGenerator.csproj" />
   </ItemGroup>
 
