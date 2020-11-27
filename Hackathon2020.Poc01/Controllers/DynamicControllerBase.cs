@@ -9,16 +9,17 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.AspNet.OData.Routing;
+using DataLib;
 
 namespace Hackathon2020.Poc01.Controllers
 {
     public class DynamicControllerBase<TEntity> : ODataController where TEntity : class
     {
-        private readonly DbContext _db;
+        private readonly IDataStore _db;
 
         private Microsoft.AspNet.OData.Routing.ODataPath ODataPath { get => HttpContext.ODataFeature().Path; }
 
-        public DynamicControllerBase(DbContext db)
+        public DynamicControllerBase(IDataStore db)
         {
             _db = db;
         }
@@ -34,7 +35,7 @@ namespace Hackathon2020.Poc01.Controllers
                 return NotFound();
             }
 
-            var entity = _db.Set<TEntity>().Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
+            var entity = _db.Set<TEntity>().FindByKey(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
             if (entity == null)
             {
                 return NotFound();
@@ -54,7 +55,7 @@ namespace Hackathon2020.Poc01.Controllers
 
             var added = _db.Set<TEntity>().Add(data);
             _db.SaveChanges();
-            return Ok(added.Entity);
+            return Ok(added);
         }
 
         public ActionResult Patch(Delta<TEntity> patch)
@@ -74,7 +75,7 @@ namespace Hackathon2020.Poc01.Controllers
             }
 
             var dbSet = _db.Set<TEntity>();
-            var entity = dbSet.Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
+            var entity = dbSet.FindByKey(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
 
             if (entity == null)
             {
@@ -101,7 +102,7 @@ namespace Hackathon2020.Poc01.Controllers
                 return NotFound();
             }
 
-            var entity = _db.Set<TEntity>().Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
+            var entity = _db.Set<TEntity>().FindByKey(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
             if (entity == null)
             {
                 return NotFound();
@@ -118,9 +119,9 @@ namespace Hackathon2020.Poc01.Controllers
 
             try
             {
-                var updated = _db.Update(entity);
+                //var updated = _db.Update(entity);
                 _db.SaveChanges();
-                return Ok(updated.Entity);
+                return Ok(entity);
             }
             catch (DbUpdateConcurrencyException ex)
             {
@@ -159,7 +160,7 @@ namespace Hackathon2020.Poc01.Controllers
                 return NotFound();
             }
 
-            var dbSetMethod = typeof(DbContext).GetMethod("Set").MakeGenericMethod(relatedType);
+            var dbSetMethod = _db.GetType().GetMethod("Set").MakeGenericMethod(relatedType);
             var relatedDbSet = dbSetMethod.Invoke(_db, Array.Empty<object>());
 
             
@@ -246,7 +247,7 @@ namespace Hackathon2020.Poc01.Controllers
                 return NotFound();
             }
 
-            var entity = _db.Set<TEntity>().Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
+            var entity = _db.Set<TEntity>().FindByKey(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
             if (entity == null)
             {
                 return NotFound();

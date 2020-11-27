@@ -49,7 +49,7 @@
         </Property>
         <Property Name="FirstName" Type="Edm.String" Nullable="false" />
         <Property Name="LastName" Type="Edm.String" Nullable="false" />
-        <!--<Property Name="Emails" Type="Collection(Edm.String)" />-->
+        <Property Name="Emails" Type="Collection(Edm.String)" />
         <Property Name="AddressInfo" Type="Collection(Microsoft.OData.SampleService.Models.TripPin.Location)" />
         <Property Name="Gender" Type="Microsoft.OData.SampleService.Models.TripPin.PersonGender" />
         <Property Name="Concurrency" Type="Edm.Int64" Nullable="false">
@@ -130,7 +130,7 @@
         </Property>
         <Property Name="StartsAt" Type="Edm.DateTimeOffset" Nullable="false" />
         <Property Name="EndsAt" Type="Edm.DateTimeOffset" Nullable="false" />
-        <!--<Property Name="Tags" Type="Collection(Edm.String)" Nullable="false" />-->
+        <Property Name="Tags" Type="Collection(Edm.String)" Nullable="false" />
         <NavigationProperty Name="Photos" Type="Collection(Microsoft.OData.SampleService.Models.TripPin.Photo)" />
         <NavigationProperty Name="PlanItems" Type="Collection(Microsoft.OData.SampleService.Models.TripPin.PlanItem)" ContainsTarget="true" />
       </EntityType>
