@@ -38,7 +38,7 @@ namespace Hackathon2020.Poc01
 
         public void ConfigureServices(IServiceCollection services)
         {
-            if (Environment.GetEnvironmentVariable("IS_REMOTE_ENV") == "true")
+            if (ProjectEnv.IsRemoveEnv())
             {
                 var azureStorageConnString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
                 var azureFileShareName = Environment.GetEnvironmentVariable("AZURE_FILE_SHARE_NAME");
@@ -67,8 +67,12 @@ namespace Hackathon2020.Poc01
             Assembly targetAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name.Contains(DbContextConstants.Name));
             var targetTypes = targetAssembly.DefinedTypes;
             //dbContext.Database.CreateIfNotExists();
-            var dataSeeder = new DataSeeder(model, dbContext, targetTypes);
-            dataSeeder.SeedData().Wait();
+
+            if (ProjectEnv.ShouldSeedData())
+            {
+                var dataSeeder = new DataSeeder(model, dbContext, targetTypes);
+                dataSeeder.SeedData().Wait();
+            }
 
             services.AddSingleton(this.Configuration);
             services.AddSingleton(typeof(IDataStore), dbContext);
