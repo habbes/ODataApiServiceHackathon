@@ -61,7 +61,7 @@ namespace Hackathon2020.Poc01
             var dbContextOptions = optionsBuilder.UseInMemoryDatabase("RapidApiDB").Options;
 
             //DbContext dbContext = (DbContext)Activator.CreateInstance(contextType, new object[] { dbContextOptions });
-            ListDataStore dbContext = (ListDataStore)Activator.CreateInstance(contextType);
+            IDataStore dataStore = (IDataStore)Activator.CreateInstance(contextType);
 
             var model = Model.GetModel();
             Assembly targetAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name.Contains(DbContextConstants.Name));
@@ -70,12 +70,12 @@ namespace Hackathon2020.Poc01
 
             if (ProjectEnv.ShouldSeedData())
             {
-                var dataSeeder = new DataSeeder(model, dbContext, targetTypes);
+                var dataSeeder = new DataSeeder(model, dataStore, targetTypes);
                 dataSeeder.SeedData().Wait();
             }
 
             services.AddSingleton(this.Configuration);
-            services.AddSingleton(typeof(IDataStore), dbContext);
+            services.AddSingleton(typeof(IDataStore), dataStore);
 
             services.AddMvc(options => {
                     options.EnableEndpointRouting = false;

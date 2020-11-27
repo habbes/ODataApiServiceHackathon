@@ -15,13 +15,13 @@ namespace Hackathon2020.Poc01.Lib.Seeder
     public class DataSeeder
     {
         IEdmModel model;
-        IDataStore context;
+        IDataStore dataStore;
         IEnumerable<TypeInfo> types;
 
-        public DataSeeder(IEdmModel model, IDataStore context, IEnumerable<TypeInfo> types)
+        public DataSeeder(IEdmModel model, IDataStore dataStore, IEnumerable<TypeInfo> types)
         {
             this.model = model;
-            this.context = context;
+            this.dataStore = dataStore;
             this.types = types;
         }
         public async Task SeedData()
@@ -36,7 +36,7 @@ namespace Hackathon2020.Poc01.Lib.Seeder
                 AssignNavigationPropertiesFor(entitySet);
             }
 
-            await context.SaveChangesAsync();
+            await dataStore.SaveChangesAsync();
         }
 
         private void SeedEntitySet(IEdmEntitySet entitySet)
@@ -44,7 +44,7 @@ namespace Hackathon2020.Poc01.Lib.Seeder
             var edmEntityType = entitySet.EntityType();
             var entityType = types.First(t => t.Name == edmEntityType.Name);
 
-            var dbSet = context.GetType().GetMethod("Set").MakeGenericMethod(entityType).Invoke(context, Array.Empty<object>());
+            var dbSet = dataStore.GetType().GetMethod("Set").MakeGenericMethod(entityType).Invoke(dataStore, Array.Empty<object>());
             var addMethod = dbSet.GetType().GetMethod("Add");
             var generator = GetGeneratorForType(entityType);
 
@@ -148,7 +148,7 @@ namespace Hackathon2020.Poc01.Lib.Seeder
 
         private object GetDataSet(Type entityType)
         {
-            return context.GetType().GetMethod("Set").MakeGenericMethod(entityType).Invoke(context, Array.Empty<object>());
+            return dataStore.GetType().GetMethod("Set").MakeGenericMethod(entityType).Invoke(dataStore, Array.Empty<object>());
         }
 
         private Type GetEntityType(string name)
