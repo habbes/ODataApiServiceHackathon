@@ -41,7 +41,7 @@ namespace DataLib
 
         public ISingletonWrapper<TEntity> Singleton<TEntity>(string name)
         {
-            var wrapper = new ListSingletonWrapper<TEntity>(name, singletons);
+            var wrapper = new ValuesLookupSingletonWrapper<TEntity>(name, singletons);
             return wrapper;
         }
 

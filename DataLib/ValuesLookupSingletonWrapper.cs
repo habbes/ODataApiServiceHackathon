@@ -4,12 +4,13 @@ using System.Text;
 
 namespace DataLib
 {
-    public class ListSingletonWrapper<TEntity> : ISingletonWrapper<TEntity>
-    {
-        IDictionary<string, object> values;
-        string name;
 
-        public ListSingletonWrapper(string name, IDictionary<string, object> values)
+    public class ValuesLookupSingletonWrapper<TEntity> : ISingletonWrapper<TEntity>
+    {
+        readonly IDictionary<string, object> values;
+        readonly string name;
+
+        public ValuesLookupSingletonWrapper(string name, IDictionary<string, object> values)
         {
             this.name = name;
             this.values = values;
