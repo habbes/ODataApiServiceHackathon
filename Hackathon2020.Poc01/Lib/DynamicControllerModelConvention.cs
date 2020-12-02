@@ -20,7 +20,7 @@ namespace Hackathon2020.Poc01.Lib
             {
                 if (controller.ControllerType.Name.StartsWith("SingletonController"))
                 {
-                    // SingletonMeControllerMe => Me
+                    // SingletonControllerMe => Me
                     var name = controller.ControllerType.Name.Substring("SingletonController".Length);
                     var singleton = _model.EntityContainer.Singletons().FirstOrDefault(s => s.Name == name);
 

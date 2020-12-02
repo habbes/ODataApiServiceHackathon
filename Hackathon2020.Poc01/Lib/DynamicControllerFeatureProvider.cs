@@ -34,9 +34,8 @@ namespace Hackathon2020.Poc01.Lib
                 );
             }
 
-            // Build Assembly
+            // Build assembly for singleton controllers
             AssemblyName assemblyName = new AssemblyName("SingletonsAssembly");
-            //AssemblyBuilder assemblyBuilder = appDomain.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.RunAndSave);
             AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
             ModuleBuilder module = assemblyBuilder.DefineDynamicModule($"{assemblyName.Name}");
 
