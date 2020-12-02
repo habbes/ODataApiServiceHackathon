@@ -396,6 +396,11 @@ namespace Hackathon2020.Poc01.Controllers
 
             foreach (var segment in segments)
             {
+                if (current == null)
+                {
+                    return NotFound();
+                }
+
                 if (segment is KeySegment keySegment)
                 {
                     current = GetEntityByKey(current, keySegment);
@@ -410,12 +415,11 @@ namespace Hackathon2020.Poc01.Controllers
                     var propertyName = navigationSegment.NavigationProperty.Name;
                     //navigationSegment.NavigationProperty.
                     current = current.GetType().GetProperty(propertyName).GetValue(current);
-
-                    // TODO: should a null property be considered 404?
-                    if (current == null)
-                    {
-                        break;
-                    }
+                }
+                else if (segment is PropertySegment propertySegment)
+                {
+                    var propertyName = propertySegment.Property.Name;
+                    current = current.GetType().GetProperty(propertyName).GetValue(current);
                 }
             }
 
