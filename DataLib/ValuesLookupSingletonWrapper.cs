@@ -35,12 +35,14 @@ namespace DataLib
 
         public TEntity Set(TEntity entity)
         {
+            entity.InitializeListProperties();
             values[name] = entity;
             return entity;
         }
 
         public TEntity Update(TEntity entity)
         {
+            entity.InitializeListProperties();
             values[name] = entity;
             return entity;
         }

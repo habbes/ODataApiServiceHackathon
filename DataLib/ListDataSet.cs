@@ -38,7 +38,7 @@ namespace DataLib
                 throw new Exception("Duplicate key");
             }
 
-            InitializeListProperties(entity);
+            entity.InitializeListProperties();
             data.Add(entity);
 
             return entity;
@@ -103,24 +103,6 @@ namespace DataLib
             return values.ToArray();
         }
 
-        private void InitializeListProperties(TEntity entity)
-        {
-            var properties = typeof(TEntity).GetProperties();
-            var listOfType = typeof(List<>);
-
-            foreach (var prop in properties)
-            {
-                if (!prop.PropertyType.IsGenericType) continue;
-                var elementType = prop.PropertyType.GetGenericArguments()[0];
-                var listType = listOfType.MakeGenericType(elementType);
-                if (!listType.IsAssignableFrom(prop.PropertyType)) continue;
-
-                var list = prop.GetValue(entity);
-                if (list == null)
-                {
-                    prop.SetValue(entity, Activator.CreateInstance(listType));
-                }
-            }
-        }
+        
     }
 }
