@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DataLib
 {
     public abstract class ListDataStore : IDataStore
     {
+        ConcurrentDictionary<string, object> singletons = new ConcurrentDictionary<string, object>();
         public ListDataStore()
         {
             InitDataSets();
@@ -23,7 +23,7 @@ namespace DataLib
 
         public IDataSet<TEntity> Set<TEntity>()
         {
-            var type = this.GetType();
+            var type = GetType();
             var targetSetType = typeof(IDataSet<>).MakeGenericType(typeof(TEntity));
 
             var targetProp = type.GetProperties().FirstOrDefault(prop => targetSetType.IsAssignableFrom(prop.PropertyType));
@@ -37,10 +37,16 @@ namespace DataLib
             return dataSet;
         }
 
+        public ISingletonWrapper<TEntity> Singleton<TEntity>(string name)
+        {
+            var wrapper = new ValuesLookupSingletonWrapper<TEntity>(name, singletons);
+            return wrapper;
+        }
+
         private void InitDataSets()
         {
             var setOf = typeof(ListDataSet<>);
-            var properties = this.GetType().GetProperties();
+            var properties = GetType().GetProperties();
 
             foreach (var prop in properties)
             {
@@ -61,7 +67,5 @@ namespace DataLib
                 prop.SetValue(this, newSet);
             }
         }
-
-       
     }
 }

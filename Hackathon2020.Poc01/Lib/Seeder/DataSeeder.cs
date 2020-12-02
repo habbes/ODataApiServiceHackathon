@@ -36,6 +36,13 @@ namespace Hackathon2020.Poc01.Lib.Seeder
                 AssignNavigationPropertiesFor(entitySet);
             }
 
+            foreach (var singleton in model.EntityContainer.Singletons())
+            {
+                SeedSingleton(singleton);
+            }
+
+            
+
             await dataStore.SaveChangesAsync();
         }
 
@@ -60,6 +67,27 @@ namespace Hackathon2020.Poc01.Lib.Seeder
             }
         }
 
+        private void SeedSingleton(IEdmSingleton singleton)
+        {
+            var edmEntityType = singleton.EntityType();
+            var entityType = types.First(t => t.Name == edmEntityType.Name);
+
+            // wrapper = dataStore.Singleton<TEntity>(name);
+            var wrapper = dataStore.GetType()
+                .GetMethod("Singleton")
+                .MakeGenericMethod(entityType)
+                .Invoke(dataStore, new object[] { singleton.Name });
+
+            var setMethod = wrapper.GetType().GetMethod("Set");
+            var generator = GetGeneratorForType(entityType);
+            var entity = GenerateValue(generator);
+            // wrapper.Set(entity)
+            setMethod.Invoke(wrapper, new[] { entity });
+
+            // we assume that SeedSingleton is called after all the entity sets have been populated
+            AssignNavigationPropertiesForEntity(entity, entityType, edmEntityType);
+        }
+
         private void AssignNavigationPropertiesFor(IEdmEntitySet entitySet)
         {
             var edmEntityType = entitySet.EntityType();
@@ -67,31 +95,29 @@ namespace Hackathon2020.Poc01.Lib.Seeder
             var dbSet = GetDataSet(entityType);
             var enumerable = dbSet as IEnumerable;
             
-
-            //foreach (var edmNavProp in edmEntityType.DeclaredNavigationProperties())
-            //{
-            //    Console.WriteLine(edmNavProp.Name);
-            //}
             foreach (var entity in enumerable)
             {
-                foreach (var navProp in edmEntityType.NavigationProperties())
+                AssignNavigationPropertiesForEntity(entity, entityType, edmEntityType);
+            }
+        }
+
+        private void AssignNavigationPropertiesForEntity(object entity, Type entityType, IEdmEntityType edmEntityType)
+        {
+            foreach (var navProp in edmEntityType.NavigationProperties())
+            {
+                if (navProp.ContainsTarget) continue;
+
+                var isCollection = navProp.Type.IsCollection();
+
+                if (isCollection)
                 {
-                    if (navProp.ContainsTarget) continue;
-
-                    var isCollection = navProp.Type.IsCollection();
-
-                    if (isCollection)
-                    {
-                        AssignCollectionNavigationPropertyForEntity(entity, entityType, navProp);
-                    }
-                    else
-                    {
-                        AssignSingleNavigationPropertyForEntity(entity, entityType, navProp);
-                    }
+                    AssignCollectionNavigationPropertyForEntity(entity, entityType, navProp);
+                }
+                else
+                {
+                    AssignSingleNavigationPropertyForEntity(entity, entityType, navProp);
                 }
             }
-
-            
         }
 
         private void AssignSingleNavigationPropertyForEntity(object entity, Type entityType, IEdmNavigationProperty navProp)
