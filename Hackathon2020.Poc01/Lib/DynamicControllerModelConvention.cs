@@ -18,7 +18,21 @@ namespace Hackathon2020.Poc01.Lib
         {
             foreach (var controller in application.Controllers)
             {
-                if (controller.ControllerType.IsGenericType)
+                if (controller.ControllerType.Name.StartsWith("SingletonController"))
+                {
+                    // SingletonMeControllerMe => Me
+                    var name = controller.ControllerType.Name.Substring("SingletonController".Length);
+                    var singleton = _model.EntityContainer.Singletons().FirstOrDefault(s => s.Name == name);
+
+                    if (singleton != null)
+                    {
+                        controller.Selectors.Add(new SelectorModel
+                        {
+                            AttributeRouteModel = new AttributeRouteModel(new RouteAttribute(singleton.Name))
+                        });
+                    }
+                }
+                else if (controller.ControllerType.IsGenericType)
                 {
                     Type genericType = controller.ControllerType.GenericTypeArguments.First();
                     var entitySet = _model.EntityContainer.EntitySets().FirstOrDefault(e => e.EntityType().Name == genericType.Name);

@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 
 namespace Hackathon2020.Poc01.Lib
 {
@@ -31,6 +32,23 @@ namespace Hackathon2020.Poc01.Lib
                 feature.Controllers.Add(
                     typeof(DynamicControllerBase<>).MakeGenericType(type).GetTypeInfo()
                 );
+            }
+
+            // Build Assembly
+            AssemblyName assemblyName = new AssemblyName("SingletonsAssembly");
+            //AssemblyBuilder assemblyBuilder = appDomain.DefineDynamicAssembly(assembly_Name, AssemblyBuilderAccess.RunAndSave);
+            AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, AssemblyBuilderAccess.RunAndCollect);
+            ModuleBuilder module = assemblyBuilder.DefineDynamicModule($"{assemblyName.Name}");
+
+            foreach (var singleton in _model.EntityContainer.Singletons())
+            {
+                var type = targetTypes.First(t => t.Name == singleton.EntityType().Name);
+                var baseType = typeof(DynamicControllerBase<>).MakeGenericType(type);
+
+                var typeBuilder = module.DefineType($"SingletonController{singleton.Name}", TypeAttributes.Public | TypeAttributes.Class, baseType);
+
+                var singletonControllerType = typeBuilder.CreateType();
+                feature.Controllers.Add(singletonControllerType.GetTypeInfo());
             }
         }
     }

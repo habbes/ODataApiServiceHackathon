@@ -15,14 +15,31 @@ namespace Hackathon2020.Poc01.Controllers
 {
     public class DynamicControllerBase<TEntity> : ODataController where TEntity : class
     {
-        private readonly IDataStore _db;
+        private IDataStore _db
+        {
+            get
+            {
+                // workaround to get the datastore from service container since
+                // we can't use automatic DI from the constructor
+                return (IDataStore)ControllerContext.HttpContext.RequestServices.GetService(typeof(IDataStore));
+            }
+        }
 
         private Microsoft.AspNet.OData.Routing.ODataPath ODataPath { get => HttpContext.ODataFeature().Path; }
 
-        public DynamicControllerBase(IDataStore db)
+        // Because new types are dynamically defined from this base class for each Singleton
+        // We needed to define a default constructor, otherwise the TypeBuilder throws an error
+        public DynamicControllerBase()
         {
-            _db = db;
         }
+
+        // AspNet complains when we have two suitable constructors, so had
+        // to leave this one out until we figure out how to get generate
+        // Singleton controllers without a default constructor
+        //public DynamicControllerBase(IDataStore db)
+        //{
+        //    _db = db;
+        //}
 
         public ActionResult Delete()
         {
