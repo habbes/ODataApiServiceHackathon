@@ -133,7 +133,7 @@ namespace Hackathon2020.Poc01.Lib
                 return actionDescriptors.FindMatchingAction("Get");
             }
             // TODO: we currently do not support nested paths for Create/Update/Delete requests
-            // TODO: very whether we support casts
+            // TODO: verify whether we support casts
             else if (HttpMethods.IsPost(request.Method))
             {
                 if (odataPath.PathTemplate == "~/entityset" ||

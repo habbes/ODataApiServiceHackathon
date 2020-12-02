@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace DataLib
@@ -43,21 +41,6 @@ namespace DataLib
         {
             var wrapper = new ValuesLookupSingletonWrapper<TEntity>(name, singletons);
             return wrapper;
-        }
-
-        public TEntity GetSingleton<TEntity>(string name)
-        {
-            if (singletons.TryGetValue(name, out object result))
-            {
-                return (TEntity)result;
-            }
-
-            return default;
-        }
-
-        public void RemoveSingleton<TEntity>(string name)
-        {
-            singletons.TryRemove(name, out object result);
         }
 
         private void InitDataSets()
