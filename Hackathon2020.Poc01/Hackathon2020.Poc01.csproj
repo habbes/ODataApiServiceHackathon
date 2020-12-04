@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Content Remove="C:\Users\clhabins\.nuget\packages\rapidapi.aspnetcore.odata.experimental\1.0.2\contentFiles\any\netcoreapp3.1\PropertyContainer.generated.tt" />
+    <Content Remove="C:\Users\clhabins\.nuget\packages\rapidapi.aspnetcore.odata.experimental\1.0.4\contentFiles\any\netcoreapp3.1\PropertyContainer.generated.tt" />
   </ItemGroup>
 
   <ItemGroup>

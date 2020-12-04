@@ -53,9 +53,6 @@ namespace Hackathon2020.Poc01
             DbContextGenerator generator = new DbContextGenerator();
             var contextType = generator.GenerateDbContext(DbContextConstants.CsdlFile, DbContextConstants.Name);
 
-
-            var connectionString = File.ReadAllText(DbContextConstants.ConnectionStringFile).Trim();
-
             var optionsBuilder = new DbContextOptionsBuilder();
             var dbContextOptions = optionsBuilder.UseInMemoryDatabase("RapidApiDB").Options;
 
