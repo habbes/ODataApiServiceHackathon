@@ -10,16 +10,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="connectionstring.txt" />
     <None Remove="Project.csdl" />
     <None Remove="Simple.csdl" />
     <None Remove="Trippin.csdl" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="connectionstring.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Project.csdl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
