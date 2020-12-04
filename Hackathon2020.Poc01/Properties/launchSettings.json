@@ -13,14 +13,16 @@
       "launchBrowser": true,
       "launchUrl": "odata",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SEED_DATA": "true"
       }
     },
     "Hackathon2020.Poc01": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "SEED_DATA": "true"
       },
       "applicationUrl": "http://localhost:5000"
     },

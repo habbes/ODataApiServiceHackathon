@@ -20,8 +20,9 @@ using System.Linq;
 using System.Xml;
 using System.IO;
 using System.Reflection;
-using Microsoft.AspNetCore.OData.Routing.Conventions;
 using Azure.Storage.Files.Shares;
+using Hackathon2020.Poc01.Lib.Seeder;
+using DataLib;
 
 namespace Hackathon2020.Poc01
 {
@@ -36,7 +37,7 @@ namespace Hackathon2020.Poc01
 
         public void ConfigureServices(IServiceCollection services)
         {
-            if (Environment.GetEnvironmentVariable("IS_REMOTE_ENV") == "true")
+            if (ProjectEnv.IsRemoveEnv())
             {
                 var azureStorageConnString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
                 var azureFileShareName = Environment.GetEnvironmentVariable("AZURE_FILE_SHARE_NAME");
@@ -58,19 +59,29 @@ namespace Hackathon2020.Poc01
             var optionsBuilder = new DbContextOptionsBuilder();
             var dbContextOptions = optionsBuilder.UseInMemoryDatabase("RapidApiDB").Options;
 
-            DbContext dbContext = (DbContext)Activator.CreateInstance(contextType, new object[] { dbContextOptions });
-         
+            //DbContext dbContext = (DbContext)Activator.CreateInstance(contextType, new object[] { dbContextOptions });
+            IDataStore dataStore = (IDataStore)Activator.CreateInstance(contextType);
+
+            var model = Model.GetModel();
+            Assembly targetAssembly = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name.Contains(DbContextConstants.Name));
+            var targetTypes = targetAssembly.DefinedTypes;
             //dbContext.Database.CreateIfNotExists();
 
+            if (ProjectEnv.ShouldSeedData())
+            {
+                var dataSeeder = new DataSeeder(model, dataStore, targetTypes);
+                dataSeeder.SeedData().Wait();
+            }
+
             services.AddSingleton(this.Configuration);
-            services.AddSingleton(typeof(DbContext), dbContext);
+            services.AddSingleton(typeof(IDataStore), dataStore);
 
             services.AddMvc(options => {
                     options.EnableEndpointRouting = false;
-                    options.Conventions.Insert(0, new DynamicControllerModelConvention(Model.GetModel()));
+                    options.Conventions.Insert(0, new DynamicControllerModelConvention(model));
                 })
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
-                .ConfigureApplicationPartManager(d =>  d.FeatureProviders.Add(new DynamicControllerFeatureProvider(Model.GetModel())));
+                .ConfigureApplicationPartManager(d =>  d.FeatureProviders.Add(new DynamicControllerFeatureProvider(model)));
             services.AddControllers();
             services.AddOData();
         }

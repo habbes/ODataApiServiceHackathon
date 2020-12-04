@@ -9,44 +9,87 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.AspNet.OData.Routing;
+using DataLib;
+using Microsoft.OData.Edm;
 
 namespace Hackathon2020.Poc01.Controllers
 {
     public class DynamicControllerBase<TEntity> : ODataController where TEntity : class
     {
-        private readonly DbContext _db;
+        private IDataStore _db
+        {
+            get
+            {
+                // workaround to get the datastore from service container since
+                // we can't use automatic DI from the constructor
+                return (IDataStore)ControllerContext.HttpContext.RequestServices.GetService(typeof(IDataStore));
+            }
+        }
 
         private Microsoft.AspNet.OData.Routing.ODataPath ODataPath { get => HttpContext.ODataFeature().Path; }
 
-        public DynamicControllerBase(DbContext db)
+        // Because new types are dynamically defined from this base class for each Singleton
+        // We needed to define a default constructor, otherwise the TypeBuilder throws an error
+        public DynamicControllerBase()
         {
-            _db = db;
         }
+
+        // AspNet complains when we have two suitable constructors, so had
+        // to leave this one out until we figure out how to get generate
+        // Singleton controllers without a default constructor
+        //public DynamicControllerBase(IDataStore db)
+        //{
+        //    _db = db;
+        //}
 
         public ActionResult Delete()
         {
             var segments = ODataPath.Segments;
 
-            // only support patch /entitySet/key, we don't support nested paths at this time
-            var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
-            if (keySegment == null)
+            TEntity entity = null;
+
+            if (IsRootEntitySet())
             {
-                return NotFound();
+                // only support patch /entitySet/key, we don't support nested paths at this time
+                var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
+                if (keySegment == null)
+                {
+                    return NotFound();
+                }
+
+                entity = _db.Set<TEntity>().FindByKey(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
+                if (entity == null)
+                {
+                    return NotFound();
+                }
+
+                _db.Set<TEntity>().Remove(entity);
+            }
+            else if (IsRootSingleton())
+            {
+                var wrapper = _db.Singleton<TEntity>(GetEdmSingleton().Name);
+                entity = wrapper.Value;
+                if (entity == null)
+                {
+                    return NotFound();
+                }
+
+                wrapper.Remove();
             }
 
-            var entity = _db.Set<TEntity>().Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
-            if (entity == null)
-            {
-                return NotFound();
-            }
-
-            _db.Set<TEntity>().Remove(entity);
+            
             _db.SaveChanges();
             return Ok(entity);
         }
 
         public ActionResult Post([FromBody] TEntity data)
         {
+            if (IsRootSingleton())
+            {
+                // POST not supported for singletons
+                return NotFound();
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -54,7 +97,7 @@ namespace Hackathon2020.Poc01.Controllers
 
             var added = _db.Set<TEntity>().Add(data);
             _db.SaveChanges();
-            return Ok(added.Entity);
+            return Ok(added);
         }
 
         public ActionResult Patch(Delta<TEntity> patch)
@@ -64,24 +107,42 @@ namespace Hackathon2020.Poc01.Controllers
                 return BadRequest(ModelState);
             }
 
-            var segments = ODataPath.Segments;
-            
-            // only support patch /entitySet/key, we don't support nested paths at this time
-            var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
-            if (keySegment == null)
+            TEntity entity = null;
+
+            if (IsRootEntitySet())
             {
-                return NotFound();
+                var segments = ODataPath.Segments;
+
+                // only support patch /entitySet/key, we don't support nested paths at this time
+                var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
+                if (keySegment == null)
+                {
+                    return NotFound();
+                }
+
+                var dbSet = _db.Set<TEntity>();
+                entity = dbSet.FindByKey(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
+
+                if (entity == null)
+                {
+                    return NotFound();
+                }
+
+                patch.Patch(entity);
+            }
+            else if (IsRootSingleton())
+            {
+                var wrapper = _db.Singleton<TEntity>(GetEdmSingleton().Name);
+                entity = wrapper.Value;
+
+                if (entity == null)
+                {
+                    return NotFound();
+                }
+
+                patch.Patch(entity);
             }
 
-            var dbSet = _db.Set<TEntity>();
-            var entity = dbSet.Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
-
-            if (entity == null)
-            {
-                return NotFound();
-            }
-
-            patch.Patch(entity);
             _db.SaveChanges();
 
             return Ok(entity);
@@ -94,33 +155,52 @@ namespace Hackathon2020.Poc01.Controllers
                 return BadRequest(ModelState);
             }
 
-            var segments = ODataPath.Segments;
-            var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
-            if (keySegment == null)
+            TEntity entity = null;
+            if (IsRootEntitySet())
             {
-                return NotFound();
+                var segments = ODataPath.Segments;
+                var keySegment = segments.OfType<KeySegment>().FirstOrDefault();
+                if (keySegment == null)
+                {
+                    return NotFound();
+                }
+
+                entity = _db.Set<TEntity>().FindByKey(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
+                if (entity == null)
+                {
+                    return NotFound();
+                }
+
+                update.Put(entity);
+
+                // ensure the key in the url matches the key in the payload
+                var type = typeof(TEntity);
+                foreach (var kvp in keySegment.Keys)
+                {
+                    type.GetProperty(kvp.Key).SetValue(entity, kvp.Value);
+                }
+
+            }
+            else if (IsRootSingleton())
+            {
+                var wrapper = _db.Singleton<TEntity>(GetEdmSingleton().Name);
+                entity = wrapper.Value;
+                if (entity == null)
+                {
+                    entity = wrapper.Set(update.GetInstance());
+                }
+                else
+                {
+                    update.Put(entity);
+                }
             }
 
-            var entity = _db.Set<TEntity>().Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
-            if (entity == null)
-            {
-                return NotFound();
-            }
-
-            update.Put(entity);
-
-            // ensure the key in the url matches the key in the payload
-            var type = typeof(TEntity);
-            foreach (var kvp in keySegment.Keys)
-            {
-                type.GetProperty(kvp.Key).SetValue(entity, kvp.Value);
-            }
-
+            
             try
             {
-                var updated = _db.Update(entity);
+                //var updated = _db.Update(entity);
                 _db.SaveChanges();
-                return Ok(updated.Entity);
+                return Ok(entity);
             }
             catch (DbUpdateConcurrencyException ex)
             {
@@ -142,24 +222,35 @@ namespace Hackathon2020.Poc01.Controllers
 
 
             var segments = ODataPath.Segments;
-            var keySegment = segments.OfType<KeySegment>().First();
+            
             var navLinkSegment = segments.OfType<NavigationPropertyLinkSegment>().First();
-            var dbSet = _db.Set<TEntity>().Include(navLinkSegment.NavigationProperty.Name);
             var entityType = typeof(TEntity);
 
-            var navProperty = entityType.GetProperty(navLinkSegment.NavigationProperty.Name);
-            var isList = typeof(IList<>).MakeGenericType(navProperty.PropertyType.GetGenericArguments()).IsAssignableFrom(navProperty.PropertyType);
+            object entity = null;
 
-            var relatedType = isList ? navProperty.PropertyType.GetGenericArguments()[0] : navProperty.PropertyType;
-
-            var entity = GetEntityByKey(dbSet, keySegment);
+            if (IsRootEntitySet())
+            {
+                var dbSet = _db.Set<TEntity>().Include(navLinkSegment.NavigationProperty.Name);
+                var keySegment = segments.OfType<KeySegment>().First();
+                entity = GetEntityByKey(dbSet, keySegment);
+            }
+            else if (IsRootSingleton())
+            {
+                var wrapper = _db.Singleton<TEntity>(GetEdmSingleton().Name);
+                entity = wrapper.Value;
+            }
 
             if (entity == null)
             {
                 return NotFound();
             }
 
-            var dbSetMethod = typeof(DbContext).GetMethod("Set").MakeGenericMethod(relatedType);
+            var navProperty = entityType.GetProperty(navLinkSegment.NavigationProperty.Name);
+            var isList = typeof(IList<>).MakeGenericType(navProperty.PropertyType.GetGenericArguments()).IsAssignableFrom(navProperty.PropertyType);
+
+            var relatedType = isList ? navProperty.PropertyType.GetGenericArguments()[0] : navProperty.PropertyType;
+
+            var dbSetMethod = _db.GetType().GetMethod("Set").MakeGenericMethod(relatedType);
             var relatedDbSet = dbSetMethod.Invoke(_db, Array.Empty<object>());
 
             
@@ -194,23 +285,33 @@ namespace Hackathon2020.Poc01.Controllers
         public IActionResult DeleteRef()
         {
             var segments = ODataPath.Segments;
-            var keySegment = segments.OfType<KeySegment>().First();
-
             var navLinkSegment = segments.OfType<NavigationPropertyLinkSegment>().First();
-            var dbSet = _db.Set<TEntity>().Include(navLinkSegment.NavigationProperty.Name);
+
+            object entity = null;
+
+            if (IsRootEntitySet())
+            {
+                var keySegment = segments.OfType<KeySegment>().First();
+                var dbSet = _db.Set<TEntity>().Include(navLinkSegment.NavigationProperty.Name);
+                entity = GetEntityByKey(dbSet, keySegment);
+            }
+            else if (IsRootSingleton())
+            {
+                var wrapper = _db.Singleton<TEntity>(GetEdmSingleton().Name);
+                entity = wrapper.Value;
+            }
+
+            if (entity == null)
+            {
+                return NotFound();
+            }
+
             var entityType = typeof(TEntity);
 
             var navProperty = entityType.GetProperty(navLinkSegment.NavigationProperty.Name);
             var isList = typeof(IList<>)
                 .MakeGenericType(navProperty.PropertyType.GetGenericArguments())
                 .IsAssignableFrom(navProperty.PropertyType);
-
-            var entity = GetEntityByKey(dbSet, keySegment);
-
-            if (entity == null)
-            {
-                return NotFound();
-            }
 
             if (isList)
             {
@@ -246,7 +347,7 @@ namespace Hackathon2020.Poc01.Controllers
                 return NotFound();
             }
 
-            var entity = _db.Set<TEntity>().Find(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
+            var entity = _db.Set<TEntity>().FindByKey(keySegment.Keys.Select(kvp => kvp.Value).ToArray());
             if (entity == null)
             {
                 return NotFound();
@@ -266,66 +367,43 @@ namespace Hackathon2020.Poc01.Controllers
             
             var odataFeature = HttpContext.ODataFeature();
             var odataPath = odataFeature.Path;
-            var template = odataPath.PathTemplate;
-            var segments = odataPath.Segments.Skip(1); // skip the first segment, expected to be the entity set segment
+            var segments = odataPath.Segments.Skip(1); // skip the first segment, expected to be the navigation source segment
 
-            var dbSet = _db.Set<TEntity>();
-
-            // traverse the path to get the list nested properties to include in the db query
-            var nestedPaths = new List<string>();
-            foreach (var segment in segments.OfType<NavigationPropertySegment>())
+            object current = null;
+            if (IsRootEntitySet())
             {
-                nestedPaths.Add(segment.NavigationProperty.Name);
+                var dbSet = _db.Set<TEntity>();
+
+                // traverse the path to get the list nested properties to include in the db query
+                var nestedPaths = new List<string>();
+                foreach (var segment in segments.OfType<NavigationPropertySegment>())
+                {
+                    nestedPaths.Add(segment.NavigationProperty.Name);
+                }
+
+                var pathToInclude = string.Join('.', nestedPaths);
+
+                // current starts off as a DbQuery<T>
+                // tell DB which nested properties to Include/Join in the query, e.g. Orders.OrderDetails
+                // TODO: maybe we should avoid eager-loading for perf?
+                current = string.IsNullOrEmpty(pathToInclude) ? dbSet : dbSet.Include(pathToInclude);
             }
-
-            var pathToInclude = string.Join('.', nestedPaths);
-
-            // current starts off as a DbQuery<T>
-            // tell DB which nested properties to Include/Join in the query, e.g. Orders.OrderDetails
-            // TODO: maybe we should avoid eager-loading for perf?
-            object current = string.IsNullOrEmpty(pathToInclude) ? dbSet : dbSet.Include(pathToInclude);
+            else if (IsRootSingleton())
+            {
+                var wrapper = _db.Singleton<TEntity>(GetEdmSingleton().Name);
+                current = wrapper.Value;
+            }
 
             foreach (var segment in segments)
             {
+                if (current == null)
+                {
+                    return NotFound();
+                }
+
                 if (segment is KeySegment keySegment)
                 {
-                    // DbQuery<T> if we're filtering the dbSet or List<T> if we're filtering the values of a collection navigation property
-                    var queryType = current.GetType();
-
-                    var entityType = queryType.GetGenericArguments().First();
-
-                    // Expression<Func<TEntity, bool>>
-                    var exprType = typeof(Expression<>)
-                        .MakeGenericType(typeof(Func<,>)
-                        .MakeGenericType(entityType, typeof(bool)));
-
-                    // filterPredicate = entity => entity.Key1 == value1 && entity.Key2 == value2 ...)
-                    var filterParam = Expression.Parameter(entityType, "entity");
-                    var filterConditions = keySegment.Keys.Select(kvp =>
-                        Expression.Equal(
-                            Expression.Property(filterParam, kvp.Key),
-                            Expression.Constant(kvp.Value)));
-                    var filterBody = filterConditions.Aggregate((left, right) => Expression.AndAlso(left, right));
-                    var filterPredicate = Expression.Lambda(filterBody, filterParam);
-
-                    // current = dbQuery.FirstOrDefault(filterPredicate);
-                    var isQueryable = (current as IQueryable) != null;
-                    var queryableType = isQueryable ? typeof(Queryable) : typeof(Enumerable);
-                    var filterMethod = queryableType.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                        .FirstOrDefault(m => m.Name == "FirstOrDefault" && m.GetParameters().Count() == 2)
-                        .MakeGenericMethod(entityType);
-
-                    if (isQueryable)
-                    {
-                        // we're filtering the db set
-                        current = filterMethod.Invoke(null, new[] { current, filterPredicate });
-                    }
-                    else
-                    {
-                        // we're filtering a collection navigation property, the values have been eager-loaded
-                        // TODO: eager-loading could be bad if we have a lot of values
-                        current = filterMethod.Invoke(null, new[] { current, filterPredicate.Compile() });
-                    }
+                    current = GetEntityByKey(current, keySegment);
 
                     if (current == null)
                     {
@@ -337,12 +415,11 @@ namespace Hackathon2020.Poc01.Controllers
                     var propertyName = navigationSegment.NavigationProperty.Name;
                     //navigationSegment.NavigationProperty.
                     current = current.GetType().GetProperty(propertyName).GetValue(current);
-
-                    // TODO: should a null property be considered 404?
-                    if (current == null)
-                    {
-                        break;
-                    }
+                }
+                else if (segment is PropertySegment propertySegment)
+                {
+                    var propertyName = propertySegment.Property.Name;
+                    current = current.GetType().GetProperty(propertyName).GetValue(current);
                 }
             }
 
@@ -390,6 +467,22 @@ namespace Hackathon2020.Poc01.Controllers
             }
 
             return current;
+        }
+
+        private bool IsRootEntitySet()
+        {
+            return ODataPath.Segments.First() is EntitySetSegment;
+        }
+
+        private bool IsRootSingleton()
+        {
+            return ODataPath.Segments.First() is SingletonSegment;
+        }
+
+        private IEdmSingleton GetEdmSingleton()
+        {
+            var segment = ODataPath.Segments.First() as SingletonSegment;
+            return segment?.Singleton;
         }
     }
 }
